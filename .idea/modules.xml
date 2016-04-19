@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cHawk.iml" filepath="$PROJECT_DIR$/.idea/modules/cHawk.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cHawk_main.iml" filepath="$PROJECT_DIR$/.idea/modules/cHawk_main.iml" group="cHawk" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cHawk_test.iml" filepath="$PROJECT_DIR$/.idea/modules/cHawk_test.iml" group="cHawk" />
+    </modules>
+  </component>
+</project>
