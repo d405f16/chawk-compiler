@@ -39,9 +39,6 @@ class TypeChecker extends chawkBaseVisitor {
             throw new NumberFormatException("The left operand cannot be boolean while the left is integer");
         }
 
-        // KRUSAA, RALLO OG BILLE ER FRA DAGS DATO (20-04-2016) KONGERNE AF GRUPPEN. DET BETYDER AT ALLE ANDRE UNDERKUEDE MEDLEMMER SKAL BETJENE KONGERNE! INKLUSIV BJ's, INTIMMASSAGE OG ANALRENSNING
-
-
         // number number
         // boolean boolean
         // logical logical
