@@ -1,3 +1,3 @@
-public class SemanticsVisitor extends chawkBaseVisitor {
+class SemanticsVisitor extends chawkBaseVisitor {
     //
 }

@@ -1,27 +1,77 @@
-public class TypeChecker extends chawkBaseVisitor {
+import com.sun.org.apache.xpath.internal.operations.Bool;
+
+import java.util.Arrays;
+import java.util.List;
+
+class TypeChecker extends chawkBaseVisitor {
     @Override
     public Object visitMathematicalExpression(chawkParser.MathematicalExpressionContext ctx) {
         Object left = visit(ctx.left);
         Object right = visit(ctx.right);
 
-        if(left instanceof Number && right instanceof Number) {
+        List<String> acceptedDatatypes = Arrays.asList(
+                "Integer",
+                "Float",
+                "MathematicalExpressionContext",
+                "Variable_expressionContext"
+        );
+
+        if (acceptedDatatypes.contains(left.getClass().getSimpleName())
+                && acceptedDatatypes.contains(right.getClass().getSimpleName())) {
             return ctx;
         }
 
         // TODO handle variables
 
-        throw new NumberFormatException("The two operands must be numbers");
+        throw new NumberFormatException("The operands must be numbers");
     }
 
     @Override
+    public Object visitLogicalExpression(chawkParser.LogicalExpressionContext ctx) {
+        Object left = visit(ctx.left);
+        Object right = visit(ctx.right);
+
+        System.out.println("left: " + left.getClass().getSimpleName());
+        System.out.println("right: " + right.getClass().getSimpleName());
+        System.out.println("--------------------------");
+
+        if (left instanceof Number) {
+            throw new NumberFormatException("The left operand cannot be boolean while the left is integer");
+        }
+
+        // KRUSAA, RALLO OG BILLE ER FRA DAGS DATO (20-04-2016) KONGERNE AF GRUPPEN. DET BETYDER AT ALLE ANDRE UNDERKUEDE MEDLEMMER SKAL BETJENE KONGERNE! INKLUSIV BJ's, INTIMMASSAGE OG ANALRENSNING
+
+
+        // number number
+        // boolean boolean
+        // logical logical
+        // math math
+        // math value
+        // value math
+        throw new NumberFormatException("You failed");
+    }
+
+
+
+    // TODO kontrolstrukture
+
+    @Override
     public Object visitValueExpression(chawkParser.ValueExpressionContext ctx) {
-        try {
-            return Integer.parseInt(ctx.getText());
-        } catch (NumberFormatException e) {
+        String text = ctx.getText();
+
+        if (text.equals("true")) {
+            return true;
+        } else if (text.equals("false")) {
+            return false;
+        } else {
             try {
-                return Float.parseFloat(ctx.getText());
-            } catch (NumberFormatException f) {
-                return ctx.getText();
+                return Integer.parseInt(text);
+            } catch (NumberFormatException e) {
+                try {
+                    return Float.parseFloat(text);
+                } catch (NumberFormatException f) {
+                    return text;
+                }
             }
         }
     }

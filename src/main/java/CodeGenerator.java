@@ -1,3 +1,3 @@
-public class CodeGenerator extends chawkBaseVisitor {
+class CodeGenerator extends chawkBaseVisitor {
     //
 }

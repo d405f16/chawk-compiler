@@ -31,18 +31,18 @@ variable_statement
     ;
 
 function_statement
-    : id=IDENTIFIER '=' '{' statement_expression '}'                        #funcDcl
-    | id1=IDENTIFIER '.' id2=IDENTIFIER '=' '{' statement_expression '}'    #funcDotDcl
+    : id=IDENTIFIER '=' '{' statement_expression? '}'                        #funcDcl
+    | id1=IDENTIFIER '.' id2=IDENTIFIER '=' '{' statement_expression? '}'    #funcDotDcl
     ;
 
 selection_statement
-    : 'if' '(' expression ')' '{' statement_expression '}'                                          #ifStmt
-    | 'if' '(' expression ')' '{' statement_expression '}' 'else' '{' statement_expression '}'      #ifElseStmt
+    : 'if' '(' expr=expression ')' '{' statement_expression? '}'
+    | 'if' '(' expr=expression ')' '{' statement_expression? '}' 'else' '{' statement_expression? '}'
     ;
 
-iteration_statement
-    : 'for' '(' variable_statement 'to' num1=NUMBER 'by' num2=NUMBER ')' '{' statement_expression '}'       #forSmt
-    | 'while' '(' expression ')' '{' statement_expression '}'                                               #whileSmt
+iteration_statement // TODO ret number til expression
+    : 'for' '(' variable_statement 'to' num1=NUMBER 'by' num2=NUMBER ')' '{' statement_expression? '}'       #forSmt
+    | 'while' '(' expression ')' '{' statement_expression? '}'                                               #whileSmt
     ;
 
 
@@ -53,14 +53,14 @@ expression
     | op1='(' expression op2=')'                                            #parenthesisExpression
     | left=expression op=('*' | '/' | '%') right=expression                 #mathematicalExpression
     | left=expression op=('+' | '-') right=expression                       #mathematicalExpression
-    | left=expression op=('<' | '<=' | '>' | '>=') right=expression         #logicalExpression
+    | left=expression op=('<' | '<=' | '>' | '>=') right=expression         #relationalExpression
     | left=expression op=('==' | '!=' ) right=expression                    #logicalExpression
     | left=expression op='&&' right=expression                              #logicalExpression
     | left=expression op='||' right=expression                              #logicalExpression
     | function_expression                                                   #functionExpression
     | variable_expression                                                   #variableExpression
     ;
-
+//
 variable_expression
     : id=IDENTIFIER                             #id
     | id=IDENTIFIER '[' expression? ']'         #array

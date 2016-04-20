@@ -109,38 +109,38 @@ class PrettyPrinter extends chawkBaseVisitor {
         return null;
     }
 
-    @Override
-    public Object visitIfStmt(chawkParser.IfStmtContext ctx) {
-        System.out.print(indent() + "if (");
-        ctx.expression().accept(this);
-        System.out.println("){");
-        indentation += 2;
-        ctx.statement_expression().accept(this);
-        indentation -= 2;
-        System.out.println(indent() + "}");
-
-        return null;
-    }
-
-    @Override
-    public Object visitIfElseStmt(chawkParser.IfElseStmtContext ctx) {
-        // if
-        System.out.print(indent() + "if (");
-        ctx.expression().accept(this);
-        System.out.println("){");
-        indentation += 2;
-        ctx.statement_expression(0).accept(this);
-        indentation -= 2;
-        System.out.println(indent() + "}");
-        // else
-        System.out.print(indent() + "else {");
-        indentation += 2;
-        ctx.statement_expression(1).accept(this);
-        indentation -= 2;
-        System.out.println(indent() + "}");
-
-        return null;
-    }
+//    @Override
+//    public Object visitIfStmt(chawkParser.IfStmtContext ctx) {
+//        System.out.print(indent() + "if (");
+//        ctx.expression().accept(this);
+//        System.out.println("){");
+//        indentation += 2;
+//        ctx.statement_expression().accept(this);
+//        indentation -= 2;
+//        System.out.println(indent() + "}");
+//
+//        return null;
+//    }
+//
+//    @Override
+//    public Object visitIfElseStmt(chawkParser.IfElseStmtContext ctx) {
+//        // if
+//        System.out.print(indent() + "if (");
+//        ctx.expression().accept(this);
+//        System.out.println("){");
+//        indentation += 2;
+//        ctx.statement_expression(0).accept(this);
+//        indentation -= 2;
+//        System.out.println(indent() + "}");
+//        // else
+//        System.out.print(indent() + "else {");
+//        indentation += 2;
+//        ctx.statement_expression(1).accept(this);
+//        indentation -= 2;
+//        System.out.println(indent() + "}");
+//
+//        return null;
+//    }
 
     @Override
     public Object visitForSmt(chawkParser.ForSmtContext ctx) {
