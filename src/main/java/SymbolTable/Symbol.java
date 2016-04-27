@@ -5,13 +5,13 @@ import java.lang.reflect.Type;
 public class Symbol {
     protected Scope _scope;
     protected String _name;
-    protected String _type;
+    protected Object _type;
 
     public Symbol(String name){
         _name = name;
     }
 
-    public Symbol(String name, String type){
+    public Symbol(String name, Object type){
         _name = name;
         _type = type;
     }
@@ -23,14 +23,14 @@ public class Symbol {
     public String getName(){
         return _name;
     }
-    public String getType(){
+    public Object getType(){
         return _type;
     }
     public void setScope(Scope scope){
         _scope = scope;
     }
 
-    public void SetType(String type){
+    public void setType(Object type){
         _type = type;
     }
 
