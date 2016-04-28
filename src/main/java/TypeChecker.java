@@ -1,7 +1,7 @@
 import SymbolTable.Symbol;
 import SymbolTable.SymbolTable;
+import SymbolTable.Scope;
 
-import java.awt.font.NumericShaper;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,12 +10,11 @@ class TypeChecker extends chawkBaseVisitor {
 
     @Override
     public Object visitProgram(chawkParser.ProgramContext ctx) {
+        System.out.println("TYPE CHECKING");
+        System.out.println("-------------");
         visitChildren(ctx);
-        if (symbolTable.getScope(0).resolve("a").getType() instanceof Integer)
-            System.out.println("Det var en Integer");
         return null;
     }
-
 
     //region Expressions
     @Override
@@ -24,18 +23,23 @@ class TypeChecker extends chawkBaseVisitor {
         Object right = visit(ctx.right);
 
         if (left instanceof Integer && right instanceof Integer) {
-            return 1;
+            return doIntMath((Integer) left, (Integer) right, ctx.op.getText().charAt(0));
         }
 
         if (left instanceof Float && right instanceof Float) {
-            return 1f;
+            return doFloatMath((Float) left, (Float) right, ctx.op.getText().charAt(0));
         }
 
-        // int + float
+        if (left instanceof Integer && right instanceof Float) {
+            return doFloatMath((Integer) left, (Float) right, ctx.op.getText().charAt(0));
+        }
 
-        throw new NumberFormatException("illegal datatype in expression line: " + ctx.start.getLine());
+        if (left instanceof Float && right instanceof Integer) {
+            return doFloatMath((Integer) right, (Float) left, ctx.op.getText().charAt(0));
+        }
+
+        throw new NumberFormatException("Illegal datatype in expression line: " + ctx.start.getLine());
     }
-
 
     @Override
     public Object visitLogicalExpression(chawkParser.LogicalExpressionContext ctx) {
@@ -69,25 +73,10 @@ class TypeChecker extends chawkBaseVisitor {
             }
         }
     }
-    //endregion
-
 
     @Override
     public Object visitId(chawkParser.IdContext ctx) {
         return symbolTable.currentScope().resolve(ctx.id.getText()).getType();
-    }
-
-    @Override
-    public Object visitVarArrayDcl(chawkParser.VarArrayDclContext ctx) {
-        List<Object> types = new ArrayList<Object>();
-        for (chawkParser.ExpressionContext expr : ctx.expression()) {
-            types.add(visit(expr));
-        }
-
-        Symbol symbol = new Symbol(ctx.id.getText(), types);
-        symbolTable.currentScope().define(symbol);
-
-        return null;
     }
 
     @Override
@@ -104,6 +93,9 @@ class TypeChecker extends chawkBaseVisitor {
         throw new NumberFormatException("Array index must be an integer");
     }
 
+    //endregion
+
+    //region Statements
 
     @Override
     public Object visitVarDcl(chawkParser.VarDclContext ctx) {
@@ -112,4 +104,72 @@ class TypeChecker extends chawkBaseVisitor {
         symbolTable.currentScope().define(s);
         return null;
     }
+
+    @Override
+    public Object visitArrayDcl(chawkParser.ArrayDclContext ctx) {
+        List<Object> types = new ArrayList<Object>();
+        for (chawkParser.ExpressionContext expr : ctx.expression()) {
+            types.add(visit(expr));
+        }
+
+        Symbol symbol = new Symbol(ctx.id.getText(), types);
+        symbolTable.currentScope().define(symbol);
+
+        return null;
+    }
+
+    //endregion
+
+    //region Math
+    private Integer doIntMath(Integer i1, Integer i2, char op) {
+        switch (op) {
+            case '*':
+                return i1 * i2;
+            case '/':
+                return i1 / i2;
+            case '%':
+                return i1 % i2;
+            case '+':
+                return i1 + i2;
+            case '-':
+                return i1 - i2;
+            default:
+                return null;
+        }
+    }
+
+    private Float doFloatMath(Float f1, Float f2, char op) {
+        switch (op) {
+            case '*':
+                return f1 * f2;
+            case '/':
+                return f1 / f2;
+            case '%':
+                return f1 % f2;
+            case '+':
+                return f1 + f2;
+            case '-':
+                return f1 - f2;
+            default:
+                return null;
+        }
+    }
+
+    private Float doFloatMath(Integer i, Float f, char op) {
+        switch (op) {
+            case '*':
+                return i * f;
+            case '/':
+                return i / f;
+            case '%':
+                return i % f;
+            case '+':
+                return i + f;
+            case '-':
+                return i - f;
+            default:
+                return null;
+        }
+    }
+    //endregion
 }

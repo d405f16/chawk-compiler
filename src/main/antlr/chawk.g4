@@ -26,13 +26,11 @@ statement
 
 variable_statement
     : id=IDENTIFIER '=' expr=expression                             #varDcl
-    | id1=IDENTIFIER '.' id2=IDENTIFIER '=' expr=expression         #varDotDcl
-    | id=IDENTIFIER '=' '[' (expression (',' expression)*)? ']'     #varArrayDcl
+    | id=IDENTIFIER '=' '[' (expression (',' expression)*)? ']'     #ArrayDcl
     ;
 
 function_statement
-    : id=IDENTIFIER '=' '{' statement_expression? '}'                        #funcDcl
-    | id1=IDENTIFIER '.' id2=IDENTIFIER '=' '{' statement_expression? '}'    #funcDotDcl
+    : id=IDENTIFIER '=' '{' statement_expression? '}'               #funcDcl
     ;
 
 selection_statement
@@ -49,7 +47,6 @@ iteration_statement // TODO ret number til expression
 /* EXPRESSIONS */
 expression
     : value                                                                 #valueExpression
-    //| sign=('!' | '+' | '-') expr=expression                              #signExpr
     | '(' expression ')'                                                    #parenthesisExpression
     | left=expression op=('*' | '/' | '%') right=expression                 #mathematicalExpression
     | left=expression op=('+' | '-') right=expression                       #mathematicalExpression
@@ -64,12 +61,10 @@ expression
 variable_expression
     : id=IDENTIFIER                             #id
     | id=IDENTIFIER '[' expression? ']'         #array
-    | id=IDENTIFIER '.' variable_expression     #dotId
     ;
 
 function_expression
     : id=IDENTIFIER '(' (named_parameter (',' named_parameter)*)? ')'   #funcCall
-    | id=IDENTIFIER '.' function_expression                             #funcDotCall
     ;
 
 named_parameter
@@ -100,7 +95,7 @@ STRING
     ;
 
 IDENTIFIER
-    : CHARACTER+ (CHARACTER | DIGIT)*
+    : CHARACTER+ (CHARACTER | DIGIT | '.')*
     ;
 
 fragment CHARACTER: ('a'..'z'|'A'..'Z');

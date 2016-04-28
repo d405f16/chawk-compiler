@@ -42,7 +42,7 @@ public class SymbolTable {
 
     public Scope getScope(int level) {
         for (Scope scope : scopeStack) {
-            if (scope._level == level) return scope;
+            if (scope.level == level) return scope;
         }
         return null;
     }
