@@ -4,6 +4,7 @@
 
 ## Antlr
 src/main/gen/
+gen/
 
 ## Java
 *.jar
