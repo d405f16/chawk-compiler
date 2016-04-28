@@ -8,11 +8,11 @@ public class SymbolTable {
     private ArrayList<Scope> allScopes;
     private Integer level;
 
-    public SymbolTable(){
+    public SymbolTable() {
         init();
     }
 
-    private void init(){
+    private void init() {
         scopeStack = new Stack<Scope>();
         allScopes = new ArrayList<Scope>();
         level = 0;
@@ -22,7 +22,7 @@ public class SymbolTable {
         allScopes.add(scope);
     }
 
-    public Scope pushScope(){
+    public Scope pushScope() {
         Scope enclosingScope = scopeStack.peek();
         Scope scope = new Scope(level++, enclosingScope);
         scopeStack.push(scope);
@@ -30,17 +30,17 @@ public class SymbolTable {
         return scope;
     }
 
-    public void popScope(){
+    public void popScope() {
         scopeStack.pop();
     }
 
-    public Scope currentScope(){
+    public Scope currentScope() {
         if (scopeStack.size() > 0) return scopeStack.peek();
         System.err.println("Unbalanced scope stack.");
         return allScopes.get(0);
     }
 
-    public Scope getScope(int level){
+    public Scope getScope(int level) {
         for (Scope scope : scopeStack) {
             if (scope._level == level) return scope;
         }

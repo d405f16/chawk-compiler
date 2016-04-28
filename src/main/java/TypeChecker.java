@@ -1,15 +1,8 @@
-import Exceptions.DeclarationException;
 import SymbolTable.Symbol;
 import SymbolTable.SymbolTable;
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.IntArrayData;
-import com.sun.xml.internal.bind.v2.schemagen.episode.Klass;
-import com.sun.xml.internal.fastinfoset.algorithm.BooleanEncodingAlgorithm;
-import org.antlr.v4.runtime.misc.IntegerList;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
-
-import java.lang.reflect.Type;
-import java.util.Arrays;
+import java.awt.font.NumericShaper;
+import java.util.ArrayList;
 import java.util.List;
 
 class TypeChecker extends chawkBaseVisitor {
@@ -23,89 +16,61 @@ class TypeChecker extends chawkBaseVisitor {
         return null;
     }
 
+
+    //region Expressions
     @Override
     public Object visitMathematicalExpression(chawkParser.MathematicalExpressionContext ctx) {
         Object left = visit(ctx.left);
         Object right = visit(ctx.right);
-        if (left instanceof Integer && right instanceof Integer) return (Integer)left + (Integer)right;
-        return null;
-////region Description
-//        List<String> acceptedDatatypes = Arrays.asList(
-//                "Integer",
-//                "Float",
-//                "MathematicalExpressionContext"
-//        );
-//
-//        if (acceptedDatatypes.contains(left.getClass().getSimpleName())
-//                && acceptedDatatypes.contains(right.getClass().getSimpleName())) {
-//            return ctx;
-//        }
-//        else if(left.getClass().getSimpleName().contains("VariableExpressionContext") &&
-//                right.getClass().getSimpleName().contains("VariableExpressionContext")){
-//            if (symbolTable.currentScope().resolve(ctx.left.getText()) != null &&
-//                    symbolTable.currentScope().resolve(ctx.right.getText()) != null) {
-//                if(symbolTable.currentScope().resolve(ctx.left.getText()).getType().contains("MathematicalExpressionContext") &&
-//                        symbolTable.currentScope().resolve(ctx.right.getText()).getType().contains("MathematicalExpressionContext")){
-//                    return ctx;
-//                }
-//                throw new DeclarationException("The declared variables must be numbers");
-//            }
-//            else throw new DeclarationException("Variables must be declared before use");
-//        }
-//        else if(left.getClass().getSimpleName().contains("VariableExpressionContext") || right.getClass().getSimpleName().contains("VariableExpressionContext")){
-//            if (symbolTable.currentScope().resolve(ctx.left.getText()) != null)
-//            {
-//                if(symbolTable.currentScope().resolve(ctx.left.getText()).getType().contains("MathematicalExpressionContext")){
-//                    return ctx;
-//                }
-//            }
-//            else if(symbolTable.currentScope().resolve(ctx.right.getText()) != null) {
-//                if(symbolTable.currentScope().resolve(ctx.right.getText()).getType().contains("MathematicalExpressionContext")){
-//                    return ctx;
-//                }
-//                throw new DeclarationException("The declared variables must be numbers");
-//            }
-//            else throw new DeclarationException("Variables must be declared before use");
-//        }
-//        throw new NumberFormatException("The operands must be numbers");
-//        //endregion
-    }
 
+        if (left instanceof Integer && right instanceof Integer) {
+            return 1;
+        }
+
+        if (left instanceof Float && right instanceof Float) {
+            return 1f;
+        }
+
+        // int + float
+
+        throw new NumberFormatException("illegal datatype in expression line: " + ctx.start.getLine());
+    }
 
 
     @Override
     public Object visitLogicalExpression(chawkParser.LogicalExpressionContext ctx) {
         Object left = visit(ctx.left);
         Object right = visit(ctx.right);
-return null;
+        return null;
     }
 
-
-
-    // TODO kontrolstrukture
+    @Override
+    public Object visitParenthesisExpression(chawkParser.ParenthesisExpressionContext ctx) {
+        return visit(ctx.expression());
+    }
 
     @Override
     public Object visitValueExpression(chawkParser.ValueExpressionContext ctx) {
-        Object type = null;
         String value = ctx.getText();
 
         if (value.equals("true")) {
-            type = true;
-        } else if (type.equals("false")) {
-            type = false;
+            return true;
+        } else if (value.equals("false")) {
+            return false;
         } else {
             try {
-                type = Integer.parseInt(value);
+                return Integer.parseInt(value);
             } catch (NumberFormatException e) {
                 try {
-                    type = Float.parseFloat(value);
+                    return Float.parseFloat(value);
                 } catch (NumberFormatException f) {
-                    type = value;
+                    return value;
                 }
             }
         }
-        return type;
     }
+    //endregion
+
 
     @Override
     public Object visitId(chawkParser.IdContext ctx) {
@@ -113,38 +78,38 @@ return null;
     }
 
     @Override
-    public Object visitVarDcl(chawkParser.VarDclContext ctx) {
-        Object type = visit(ctx.expr);
-        Symbol s = new Symbol(ctx.id.getText(), type);
-        symbolTable.currentScope().define(s);
-        /*//region OldCode
-        if (ctx.expr != null){
-            visit(ctx.expr);
-            if(ctx.expr.getClass().getSimpleName() == "VariableExpressionContext"){
-                Symbol symbol = new Symbol(ctx.id.getText(),symbolTable.currentScope().resolve(ctx.getText()).getType());
-                symbolTable.currentScope().define(symbol);
-            }
-            else{
-                Symbol symbol = new Symbol(ctx.id.getText(),ctx.expr.getClass().getSimpleName());
-                symbolTable.currentScope().define(symbol);
-            }
-
+    public Object visitVarArrayDcl(chawkParser.VarArrayDclContext ctx) {
+        List<Object> types = new ArrayList<Object>();
+        for (chawkParser.ExpressionContext expr : ctx.expression()) {
+            types.add(visit(expr));
         }
-        return ctx;
-        //endregion*/
+
+        Symbol symbol = new Symbol(ctx.id.getText(), types);
+        symbolTable.currentScope().define(symbol);
+
         return null;
     }
 
     @Override
-public Object visitVariableExpression(chawkParser.VariableExpressionContext ctx) {
-    return ctx;
-}
-//    @Override
-//    public Object visitVariable_expression(chawkParser.Variable_expressionContext ctx) {
-//        visitChildren(ctx);
-//        System.out.println("varaible expression");
-//        System.out.println("ctx.id.getText()");
-//         get variable from hashTable and return
-//        return null;
-//    }
+    public Object visitArray(chawkParser.ArrayContext ctx) {
+        Symbol symbol = symbolTable.currentScope().resolve(ctx.id.getText());
+        ArrayList types = (ArrayList) symbol.getType();
+
+        Object expr = visit(ctx.expression());
+
+        if (expr instanceof Integer) {
+            return types.get((Integer) expr);
+        }
+
+        throw new NumberFormatException("Array index must be an integer");
+    }
+
+
+    @Override
+    public Object visitVarDcl(chawkParser.VarDclContext ctx) {
+        Object type = visit(ctx.expr);
+        Symbol s = new Symbol(ctx.id.getText(), type);
+        symbolTable.currentScope().define(s);
+        return null;
+    }
 }

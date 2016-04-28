@@ -50,7 +50,7 @@ iteration_statement // TODO ret number til expression
 expression
     : value                                                                 #valueExpression
     //| sign=('!' | '+' | '-') expr=expression                              #signExpr
-    | op1='(' expression op2=')'                                            #parenthesisExpression
+    | '(' expression ')'                                                    #parenthesisExpression
     | left=expression op=('*' | '/' | '%') right=expression                 #mathematicalExpression
     | left=expression op=('+' | '-') right=expression                       #mathematicalExpression
     | left=expression op=('<' | '<=' | '>' | '>=') right=expression         #relationalExpression
