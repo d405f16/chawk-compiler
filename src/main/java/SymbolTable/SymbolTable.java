@@ -24,7 +24,7 @@ public class SymbolTable {
 
     public Scope pushScope() {
         Scope enclosingScope = scopeStack.peek();
-        Scope scope = new Scope(level++, enclosingScope);
+        Scope scope = new Scope(++level, enclosingScope);
         scopeStack.push(scope);
         allScopes.add(scope);
         return scope;
@@ -35,6 +35,7 @@ public class SymbolTable {
     }
 
     public Scope currentScope() {
+        System.out.println(scopeStack.size());
         if (scopeStack.size() > 0) return scopeStack.peek();
         System.err.println("Unbalanced scope stack.");
         return allScopes.get(0);

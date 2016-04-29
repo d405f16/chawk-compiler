@@ -12,6 +12,7 @@ class TypeChecker extends chawkBaseVisitor {
     public Object visitProgram(chawkParser.ProgramContext ctx) {
         System.out.println("TYPE CHECKING");
         System.out.println("-------------");
+        System.out.println(symbolTable.currentScope().level);
         visitChildren(ctx);
         return null;
     }
@@ -102,6 +103,14 @@ class TypeChecker extends chawkBaseVisitor {
         Object type = visit(ctx.expr);
         Symbol s = new Symbol(ctx.id.getText(), type);
         symbolTable.currentScope().define(s);
+        return null;
+    }
+
+    @Override
+    public Object visitFuncDcl(chawkParser.FuncDclContext ctx) {
+        symbolTable.pushScope();
+
+        symbolTable.popScope();
         return null;
     }
 

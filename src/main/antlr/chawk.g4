@@ -30,7 +30,7 @@ variable_statement
     ;
 
 function_statement
-    : id=IDENTIFIER '=' '{' statement_expression? '}'               #funcDcl
+    : id=IDENTIFIER '=' '{' expr=statement_expression? returnstmt=return_statement?'}'               #funcDcl
     ;
 
 selection_statement
@@ -43,6 +43,9 @@ iteration_statement // TODO ret number til expression
     | 'while' '(' expression ')' '{' statement_expression? '}'                                               #whileSmt
     ;
 
+return_statement
+    : 'return' expr=expression
+    ;
 
 /* EXPRESSIONS */
 expression
