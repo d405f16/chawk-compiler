@@ -55,8 +55,8 @@ expression
     | left=expression op=('+' | '-') right=expression                       #mathematicalExpression
     | left=expression op=('<' | '<=' | '>' | '>=') right=expression         #relationalExpression
     | left=expression op=('==' | '!=' ) right=expression                    #logicalExpression
-    | left=expression op='&&' right=expression                              #logicalExpression
-    | left=expression op='||' right=expression                              #logicalExpression
+    | left=expression op='&&' right=expression                              #andOrExpression
+    | left=expression op='||' right=expression                              #andOrExpression
     | function_expression                                                   #functionExpression
     | variable_expression                                                   #variableExpression
     ;

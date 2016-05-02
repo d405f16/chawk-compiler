@@ -1,7 +1,9 @@
 import SymbolTable.Symbol;
 import SymbolTable.SymbolTable;
 import SymbolTable.Scope;
+import org.omg.CORBA.INTERNAL;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +14,25 @@ class TypeChecker extends chawkBaseVisitor {
     public Object visitProgram(chawkParser.ProgramContext ctx) {
         System.out.println("TYPE CHECKING");
         System.out.println("-------------");
-        System.out.println(symbolTable.currentScope().level);
         visitChildren(ctx);
+        return null;
+    }
+
+    @Override
+    public Object visitSetup(chawkParser.SetupContext ctx) {
+        symbolTable.pushScope();
+        visitChildren(ctx);
+        symbolTable.popScope();
+
+        return null;
+    }
+
+    @Override
+    public Object visitRoute(chawkParser.RouteContext ctx) {
+        symbolTable.pushScope();
+        visitChildren(ctx);
+        symbolTable.popScope();
+
         return null;
     }
 
@@ -46,6 +65,57 @@ class TypeChecker extends chawkBaseVisitor {
     public Object visitLogicalExpression(chawkParser.LogicalExpressionContext ctx) {
         Object left = visit(ctx.left);
         Object right = visit(ctx.right);
+
+        if (left.getClass().equals(right.getClass())){
+            return true;
+        }
+        else {
+            try {
+                throw new Exception("Operator " + ctx.op.getText() + " cannot be applied to " +
+                        left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName());
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitRelationalExpression(chawkParser.RelationalExpressionContext ctx) {
+        Object left = visit(ctx.left);
+        Object right = visit(ctx.right);
+
+        if (left instanceof Number && right instanceof Number)
+            return true;
+        else {
+            try {
+                throw new Exception("Operator " + ctx.op.getText() + " cannot be applied to " +
+                        left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName());
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitAndOrExpression(chawkParser.AndOrExpressionContext ctx) {
+        // && ||
+        Object left = visit(ctx.left);
+        Object right = visit(ctx.right);
+        System.out.println(left.getClass().getSimpleName());
+        System.out.println(right.getClass().getSimpleName());
+        if (left instanceof Boolean && right instanceof Boolean){
+            return true;
+        }
+        else {
+            try {
+                throw new Exception("Operator " + ctx.op.getText() + " cannot be applied to " +
+                        left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName());
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
         return null;
     }
 
@@ -107,14 +177,6 @@ class TypeChecker extends chawkBaseVisitor {
     }
 
     @Override
-    public Object visitFuncDcl(chawkParser.FuncDclContext ctx) {
-        symbolTable.pushScope();
-
-        symbolTable.popScope();
-        return null;
-    }
-
-    @Override
     public Object visitArrayDcl(chawkParser.ArrayDclContext ctx) {
         List<Object> types = new ArrayList<Object>();
         for (chawkParser.ExpressionContext expr : ctx.expression()) {
@@ -125,6 +187,25 @@ class TypeChecker extends chawkBaseVisitor {
         symbolTable.currentScope().define(symbol);
 
         return null;
+    }
+
+    @Override
+    public Object visitFuncDcl(chawkParser.FuncDclContext ctx) {
+        symbolTable.pushScope();
+        visit(ctx.expr);
+
+        // TODO if type == null skal typen af Symbol s være en void agtig type
+        Object type = visit(ctx.return_statement());
+        Symbol s = new Symbol(ctx.id.getText(), type);
+        symbolTable.currentScope().define(s);
+
+        symbolTable.popScope();
+        return null;
+    }
+
+    @Override
+    public Object visitReturn_statement(chawkParser.Return_statementContext ctx) {
+        return visit(ctx.expr);
     }
 
     //endregion

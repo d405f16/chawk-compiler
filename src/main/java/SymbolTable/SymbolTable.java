@@ -31,11 +31,11 @@ public class SymbolTable {
     }
 
     public void popScope() {
+        level--;
         scopeStack.pop();
     }
 
     public Scope currentScope() {
-        System.out.println(scopeStack.size());
         if (scopeStack.size() > 0) return scopeStack.peek();
         System.err.println("Unbalanced scope stack.");
         return allScopes.get(0);
