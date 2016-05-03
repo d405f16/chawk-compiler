@@ -9,15 +9,15 @@ public class SymbolTable {
     private Integer level;
 
     public SymbolTable() {
-        init();
-    }
-
-    private void init() {
         scopeStack = new Stack<Scope>();
         allScopes = new ArrayList<Scope>();
         level = 0;
 
         Scope scope = new Scope(0, null);
+        scope.defineKeyword(new Symbol("drone.takeoff", "void"));
+        scope.defineKeyword(new Symbol("drone.land", "void"));
+        scope.defineKeyword(new Symbol("drone.fly", "void"));
+        scope.defineKeyword(new Symbol("drone.battery", "Integer"));
         scopeStack.push(scope);
         allScopes.add(scope);
     }

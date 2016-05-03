@@ -1,73 +1,77 @@
 grammar chawk;
 
 program
-    : statement_expression? setup statement_expression? route statement_expression?
+    : body* setup body* route body* events body*
     ;
 
-statement_expression
-    : (statement | expression)+
+body
+    : statement
+    | function_expression
     ;
 
 setup
-    : 'setup' '=' '{' statement_expression? '}'
+    : 'setup' '=' '{' body* '}'
     ;
 
 route
-    : 'route' '=' '{' statement_expression? '}'
+    : 'route' '=' '{' body* '}'
     ;
 
-/* STATEMENTS */
+events
+    : 'events' '=' '{' body* '}'
+    ;
+
 statement
     : variable_statement
     | function_statement
     | selection_statement
     | iteration_statement
+    | return_statement
     ;
 
 variable_statement
-    : id=IDENTIFIER '=' expr=expression                             #varDcl
-    | id=IDENTIFIER '=' '[' (expression (',' expression)*)? ']'     #ArrayDcl
+    : IDENTIFIER '=' expression                                 #variableStatement
+    | IDENTIFIER '=' '[' (expression (',' expression)*)? ']'    #arrayStatement
     ;
 
 function_statement
-    : id=IDENTIFIER '=' '{' expr=statement_expression? returnstmt=return_statement?'}'               #funcDcl
+    : IDENTIFIER '=' '{' body* '}'                              #functionStatement
     ;
 
 selection_statement
-    : 'if' '(' expr=expression ')' '{' statement_expression? '}'
-    | 'if' '(' expr=expression ')' '{' statement_expression? '}' 'else' '{' statement_expression? '}'
+    : 'if' '(' expression ')' '{' body* '}'
+    | 'if' '(' expression ')' '{' body* '}' 'else' '{' body* '}'
     ;
 
-iteration_statement // TODO ret number til expression
-    : 'for' '(' variable_statement 'to' num1=NUMBER 'by' num2=NUMBER ')' '{' statement_expression? '}'       #forSmt
-    | 'while' '(' expression ')' '{' statement_expression? '}'                                               #whileSmt
+iteration_statement
+    : 'for' '(' variable_statement 'to' expression 'by' expression ')' '{' body* '}'
+    | 'while' '(' expression ')' '{' body* '}'
     ;
 
 return_statement
-    : 'return' expr=expression
+    : 'return' expression
     ;
 
-/* EXPRESSIONS */
 expression
-    : value                                                                 #valueExpression
-    | '(' expression ')'                                                    #parenthesisExpression
-    | left=expression op=('*' | '/' | '%') right=expression                 #mathematicalExpression
-    | left=expression op=('+' | '-') right=expression                       #mathematicalExpression
-    | left=expression op=('<' | '<=' | '>' | '>=') right=expression         #relationalExpression
-    | left=expression op=('==' | '!=' ) right=expression                    #logicalExpression
-    | left=expression op='&&' right=expression                              #andOrExpression
-    | left=expression op='||' right=expression                              #andOrExpression
-    | function_expression                                                   #functionExpression
-    | variable_expression                                                   #variableExpression
+    : VALUE                                                 #valueExpression
+    | '(' expression ')'                                    #parenthesisExpression
+    | variable_expression                                   #variableExpression
+    | function_expression                                   #functionExpression
+    | expression ('*' | '/' | '%') expression               #mathematicalExpression
+    | expression ('+' | '-') expression                     #mathematicalExpression
+    | expression ('<' | '<=' | '>' | '>=') expression       #relationalExpression
+    | expression ('==' | '!=' ) expression                  #equalityExpression
+    | expression '&&' expression                            #logicalExpression
+    | expression '||' expression                            #logicalExpression
     ;
-//
+
 variable_expression
-    : id=IDENTIFIER                             #id
-    | id=IDENTIFIER '[' expression? ']'         #array
+    : IDENTIFIER
+    | IDENTIFIER '[' expression? ']'
     ;
 
 function_expression
-    : id=IDENTIFIER '(' (named_parameter (',' named_parameter)*)? ')'   #funcCall
+    : IDENTIFIER '(' (named_parameter (',' named_parameter)*)? ')'
     ;
 
 named_parameter
@@ -75,35 +79,20 @@ named_parameter
     | function_statement
     ;
 
-
-/* DATATYPES */
-value
+VALUE
     : BOOLEAN
     | NUMBER
     | STRING
     ;
 
-BOOLEAN
-    : ('true' | 'TRUE')
-    | ('false' | 'FALSE')
-    ;
+BOOLEAN: 'true' | 'false';
+STRING: ANY_EXCEPT_DOUBLEQUOTE | ANY_EXCEPT_SINGLEQUOTE;
+NUMBER: DIGIT+ ('.' DIGIT+)?;
+IDENTIFIER: CHARACTER+ (CHARACTER | DIGIT | '.')*;
 
-NUMBER
-    : DIGIT+ ('.' DIGIT+)?
-    ;
-
-STRING
-    : '"' ~('"' | '\n' | '\r')* '"'
-    | '\'' ~('\'' | '\n' | '\r')* '\''
-    ;
-
-IDENTIFIER
-    : CHARACTER+ (CHARACTER | DIGIT | '.')*
-    ;
-
-fragment CHARACTER: ('a'..'z'|'A'..'Z');
 fragment DIGIT: ('0'..'9');
+fragment CHARACTER: ('a'..'z'|'A'..'Z');
+fragment ANY_EXCEPT_DOUBLEQUOTE: '"' ~('"' | '\n' | '\r')* '"';
+fragment ANY_EXCEPT_SINGLEQUOTE: '\'' ~('\'' | '\n' | '\r')* '\'';
 
-
-/* REMOVE WHITESPACE */
 WHITESPACE: (' ' | '\t' | '\r' | '\n') -> skip;

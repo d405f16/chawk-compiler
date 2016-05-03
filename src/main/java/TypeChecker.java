@@ -1,11 +1,4 @@
-import SymbolTable.Symbol;
 import SymbolTable.SymbolTable;
-import SymbolTable.Scope;
-import org.omg.CORBA.INTERNAL;
-
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
 
 class TypeChecker extends chawkBaseVisitor {
     SymbolTable symbolTable = new SymbolTable();
@@ -14,109 +7,93 @@ class TypeChecker extends chawkBaseVisitor {
     public Object visitProgram(chawkParser.ProgramContext ctx) {
         System.out.println("TYPE CHECKING");
         System.out.println("-------------");
-        visitChildren(ctx);
-        return null;
+        return visitChildren(ctx);
     }
 
     @Override
     public Object visitSetup(chawkParser.SetupContext ctx) {
         symbolTable.pushScope();
-        visitChildren(ctx);
+        Object children = visitChildren(ctx);
         symbolTable.popScope();
-
-        return null;
+        return children;
     }
 
     @Override
     public Object visitRoute(chawkParser.RouteContext ctx) {
         symbolTable.pushScope();
-        visitChildren(ctx);
+        Object children = visitChildren(ctx);
         symbolTable.popScope();
+        return children;
+    }
+
+    @Override
+    public Object visitBody(chawkParser.BodyContext ctx) {
+        return visit(ctx.statement());
+    }
+
+    //region Statements
+    @Override
+    public Object visitVariableStatement(chawkParser.VariableStatementContext ctx) {
+        Object type = visit(ctx.expression());
+        symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), type.toString());
+        return null;
+    }
+
+    @Override
+    public Object visitArrayStatement(chawkParser.ArrayStatementContext ctx) {
+        Object arrayType = visit(ctx.expression(0));
+
+        for (chawkParser.ExpressionContext expr : ctx.expression()) {
+            Object type = visit(expr);
+
+            if(!type.equals(arrayType)) {
+                throw new NumberFormatException("Elements in array are not all of same type");
+            }
+        }
+
+        symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), arrayType.toString());
 
         return null;
     }
+
+    @Override
+    public Object visitFunctionStatement(chawkParser.FunctionStatementContext ctx) {
+        //symbolTable.pushScope();
+        Object type = visit(ctx.body(0));
+        System.out.println(type);
+        //symbolTable.popScope();
+
+
+        return null;
+    }
+
+    @Override
+    public Object visitReturn_statement(chawkParser.Return_statementContext ctx) {
+        return visit(ctx.expression());
+    }
+
+    //endregion
 
     //region Expressions
     @Override
-    public Object visitMathematicalExpression(chawkParser.MathematicalExpressionContext ctx) {
-        Object left = visit(ctx.left);
-        Object right = visit(ctx.right);
+    public Object visitValueExpression(chawkParser.ValueExpressionContext ctx) {
+        String value = ctx.getText();
 
-        if (left instanceof Integer && right instanceof Integer) {
-            return doIntMath((Integer) left, (Integer) right, ctx.op.getText().charAt(0));
-        }
-
-        if (left instanceof Float && right instanceof Float) {
-            return doFloatMath((Float) left, (Float) right, ctx.op.getText().charAt(0));
-        }
-
-        if (left instanceof Integer && right instanceof Float) {
-            return doFloatMath((Integer) left, (Float) right, ctx.op.getText().charAt(0));
-        }
-
-        if (left instanceof Float && right instanceof Integer) {
-            return doFloatMath((Integer) right, (Float) left, ctx.op.getText().charAt(0));
-        }
-
-        throw new NumberFormatException("Illegal datatype in expression line: " + ctx.start.getLine());
-    }
-
-    @Override
-    public Object visitLogicalExpression(chawkParser.LogicalExpressionContext ctx) {
-        Object left = visit(ctx.left);
-        Object right = visit(ctx.right);
-
-        if (left.getClass().equals(right.getClass())){
-            return true;
-        }
-        else {
+        if (value.equals("true") || value.equals("false")) {
+            return "Boolean";
+        } else {
             try {
-                throw new Exception("Operator " + ctx.op.getText() + " cannot be applied to " +
-                        left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName());
-            } catch (Exception e){
-                e.printStackTrace();
+                Integer.parseInt(value);
+                return "Integer";
+            } catch (NumberFormatException e) {
+                try {
+                    Float.parseFloat(value);
+                    return "Float";
+                } catch (NumberFormatException f) {
+                    return "String";
+                }
             }
         }
-        return null;
-    }
-
-    @Override
-    public Object visitRelationalExpression(chawkParser.RelationalExpressionContext ctx) {
-        Object left = visit(ctx.left);
-        Object right = visit(ctx.right);
-
-        if (left instanceof Number && right instanceof Number)
-            return true;
-        else {
-            try {
-                throw new Exception("Operator " + ctx.op.getText() + " cannot be applied to " +
-                        left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName());
-            } catch (Exception e){
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Object visitAndOrExpression(chawkParser.AndOrExpressionContext ctx) {
-        // && ||
-        Object left = visit(ctx.left);
-        Object right = visit(ctx.right);
-        System.out.println(left.getClass().getSimpleName());
-        System.out.println(right.getClass().getSimpleName());
-        if (left instanceof Boolean && right instanceof Boolean){
-            return true;
-        }
-        else {
-            try {
-                throw new Exception("Operator " + ctx.op.getText() + " cannot be applied to " +
-                        left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName());
-            } catch (Exception e){
-                e.printStackTrace();
-            }
-        }
-        return null;
     }
 
     @Override
@@ -125,141 +102,177 @@ class TypeChecker extends chawkBaseVisitor {
     }
 
     @Override
-    public Object visitValueExpression(chawkParser.ValueExpressionContext ctx) {
-        String value = ctx.getText();
-
-        if (value.equals("true")) {
-            return true;
-        } else if (value.equals("false")) {
-            return false;
-        } else {
-            try {
-                return Integer.parseInt(value);
-            } catch (NumberFormatException e) {
-                try {
-                    return Float.parseFloat(value);
-                } catch (NumberFormatException f) {
-                    return value;
-                }
-            }
-        }
-    }
-
-    @Override
-    public Object visitId(chawkParser.IdContext ctx) {
-        return symbolTable.currentScope().resolve(ctx.id.getText()).getType();
-    }
-
-    @Override
-    public Object visitArray(chawkParser.ArrayContext ctx) {
-        Symbol symbol = symbolTable.currentScope().resolve(ctx.id.getText());
-        ArrayList types = (ArrayList) symbol.getType();
-
-        Object expr = visit(ctx.expression());
-
-        if (expr instanceof Integer) {
-            return types.get((Integer) expr);
-        }
-
-        throw new NumberFormatException("Array index must be an integer");
-    }
-
-    //endregion
-
-    //region Statements
-
-    @Override
-    public Object visitVarDcl(chawkParser.VarDclContext ctx) {
-        Object type = visit(ctx.expr);
-        Symbol s = new Symbol(ctx.id.getText(), type);
-        symbolTable.currentScope().define(s);
-        return null;
-    }
-
-    @Override
-    public Object visitArrayDcl(chawkParser.ArrayDclContext ctx) {
-        List<Object> types = new ArrayList<Object>();
-        for (chawkParser.ExpressionContext expr : ctx.expression()) {
-            types.add(visit(expr));
-        }
-
-        Symbol symbol = new Symbol(ctx.id.getText(), types);
-        symbolTable.currentScope().define(symbol);
+    public Object visitVariable_expression(chawkParser.Variable_expressionContext ctx) {
+        //System.out.print(ctx.IDENTIFIER());
 
         return null;
     }
 
     @Override
-    public Object visitFuncDcl(chawkParser.FuncDclContext ctx) {
-        symbolTable.pushScope();
-        visit(ctx.expr);
-
-        // TODO if type == null skal typen af Symbol s være en void agtig type
-        Object type = visit(ctx.return_statement());
-        Symbol s = new Symbol(ctx.id.getText(), type);
-        symbolTable.currentScope().define(s);
-
-        symbolTable.popScope();
+    public Object visitFunction_expression(chawkParser.Function_expressionContext ctx) {
         return null;
     }
 
     @Override
-    public Object visitReturn_statement(chawkParser.Return_statementContext ctx) {
-        return visit(ctx.expr);
+    public Object visitMathematicalExpression(chawkParser.MathematicalExpressionContext ctx) {
+        Object left = visit(ctx.expression(0));
+        Object right = visit(ctx.expression(1));
+
+        if (left.equals("Integer") && right.equals("Integer")) {
+            return "Integer";
+        }
+
+        if (left.equals("Float") && right.equals("Float")) {
+            return "Float";
+        }
+
+        if (left.equals("Integer") && right.equals("Float")) {
+            return "Float";
+        }
+
+        if (left.equals("Float") && right.equals("Integer")) {
+            return "Float";
+        }
+
+        throw new NumberFormatException("Illegal datatype in expression line: " + ctx.start.getLine());
     }
 
+    @Override
+    public Object visitRelationalExpression(chawkParser.RelationalExpressionContext ctx) {
+        Object left = visit(ctx.expression(0));
+        Object right = visit(ctx.expression(1));
+
+        if (!left.equals("Integer") && !left.equals("Float") && !right.equals("Integer") && !right.equals("Float")) {
+            throw new NumberFormatException("A relational comparison must be of the same type");
+        }
+
+        return "Boolean";
+    }
+
+    @Override
+    public Object visitEqualityExpression(chawkParser.EqualityExpressionContext ctx) {
+        Object left = visit(ctx.expression(0));
+        Object right = visit(ctx.expression(1));
+
+        if (!left.equals(right)) {
+            throw new NumberFormatException("An equality comparison must be of numeric values");
+        }
+
+        return "Boolean";
+    }
+
+    @Override
+    public Object visitLogicalExpression(chawkParser.LogicalExpressionContext ctx) {
+        Object left = visit(ctx.expression(0));
+        Object right = visit(ctx.expression(1));
+
+        if (!left.equals("Boolean") && !right.equals("Boolean")) {
+            throw new NumberFormatException("A logical comparison must be of the boolean");
+        }
+
+        return "Boolean";
+    }
     //endregion
 
-    //region Math
-    private Integer doIntMath(Integer i1, Integer i2, char op) {
-        switch (op) {
-            case '*':
-                return i1 * i2;
-            case '/':
-                return i1 / i2;
-            case '%':
-                return i1 % i2;
-            case '+':
-                return i1 + i2;
-            case '-':
-                return i1 - i2;
-            default:
-                return null;
-        }
-    }
+    //    @Override
+//    public Object visitId(chawkParser.IdContext ctx) {
+//        return symbolTable.currentScope().resolve(ctx.id.getText()).getType();
+//    }
+//
+//    @Override
+//    public Object visitArray(chawkParser.ArrayContext ctx) {
+//        Symbol symbol = symbolTable.currentScope().resolve(ctx.id.getText());
+//        ArrayList types = (ArrayList) symbol.getType();
+//
+//        Object expr = visit(ctx.expression());
+//
+//        if (expr instanceof Integer) {
+//            return types.get((Integer) expr);
+//        }
+//
+//        throw new NumberFormatException("Array index must be an integer");
+//    }
+//
+//    //endregion
+//
+//    //region Statements
+//
 
-    private Float doFloatMath(Float f1, Float f2, char op) {
-        switch (op) {
-            case '*':
-                return f1 * f2;
-            case '/':
-                return f1 / f2;
-            case '%':
-                return f1 % f2;
-            case '+':
-                return f1 + f2;
-            case '-':
-                return f1 - f2;
-            default:
-                return null;
-        }
-    }
 
-    private Float doFloatMath(Integer i, Float f, char op) {
-        switch (op) {
-            case '*':
-                return i * f;
-            case '/':
-                return i / f;
-            case '%':
-                return i % f;
-            case '+':
-                return i + f;
-            case '-':
-                return i - f;
-            default:
-                return null;
-        }
-    }
-    //endregion
+//
+//    @Override
+//    public Object visitFuncDcl(chawkParser.FuncDclContext ctx) {
+//        symbolTable.pushScope();
+//        visit(ctx.expr);
+//
+//        // TODO if type == null skal typen af Symbol s være en void agtig type
+//        Object type = visit(ctx.return_statement());
+//        Symbol s = new Symbol(ctx.id.getText(), type);
+//        symbolTable.currentScope().define(s);
+//
+//        symbolTable.popScope();
+//        return null;
+//    }
+//
+//    @Override
+//    public Object visitReturn_statement(chawkParser.Return_statementContext ctx) {
+//        return visit(ctx.expr);
+//    }
+//
+//    //endregion
+//
+//    //region Math
+//    private Integer doIntMath(Integer i1, Integer i2, char op) {
+//        switch (op) {
+//            case '*':
+//                return i1 * i2;
+//            case '/':
+//                return i1 / i2;
+//            case '%':
+//                return i1 % i2;
+//            case '+':
+//                return i1 + i2;
+//            case '-':
+//                return i1 - i2;
+//            default:
+//                return null;
+//        }
+//    }
+//
+//    private Float doFloatMath(Float f1, Float f2, char op) {
+//        switch (op) {
+//            case '*':
+//                return f1 * f2;
+//            case '/':
+//                return f1 / f2;
+//            case '%':
+//                return f1 % f2;
+//            case '+':
+//                return f1 + f2;
+//            case '-':
+//                return f1 - f2;
+//            default:
+//                return null;
+//        }
+//    }
+//
+//    private Float doFloatMath(Integer i, Float f, char op) {
+//        switch (op) {
+//            case '*':
+//                return i * f;
+//            case '/':
+//                return i / f;
+//            case '%':
+//                return i % f;
+//            case '+':
+//                return i + f;
+//            case '-':
+//                return i - f;
+//            default:
+//                return null;
+//        }
+//    }
+//    //endregion
+
+
 }
