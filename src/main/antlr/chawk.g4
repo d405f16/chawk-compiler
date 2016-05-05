@@ -1,24 +1,19 @@
 grammar chawk;
 
 program
-    : body* setup body* route body* events body*
+    : body? setup body? route body? EOF
     ;
 
 body
-    : statement
-    | function_expression
+    : (statement | function_expression)+
     ;
 
 setup
-    : 'setup' '=' '{' body* '}'
+    : 'setup' '=' '{' body? '}'
     ;
 
 route
-    : 'route' '=' '{' body* '}'
-    ;
-
-events
-    : 'events' '=' '{' body* '}'
+    : 'route' '=' '{' body? '}'
     ;
 
 statement
@@ -30,22 +25,22 @@ statement
     ;
 
 variable_statement
-    : IDENTIFIER '=' expression                                 #variableStatement
-    | IDENTIFIER '=' '[' (expression (',' expression)*)? ']'    #arrayStatement
+    : id=IDENTIFIER '=' expression                                 #variableStatement
+    | id=IDENTIFIER '=' '[' (expression (',' expression)*)? ']'    #arrayStatement
     ;
 
 function_statement
-    : IDENTIFIER '=' '{' body* '}'                              #functionStatement
+    : IDENTIFIER '=' '{' body? '}'                              #functionStatement
     ;
 
 selection_statement
-    : 'if' '(' expression ')' '{' body* '}'                         #ifStatement
-    | 'if' '(' expression ')' '{' body* '}' 'else' '{' body* '}'    #ifElseStatement
+    : 'if' '(' expr=expression ')' '{' body? '}'                         #ifStatement
+    | 'if' '(' expr=expression ')' '{' body? '}' 'else' '{' body? '}'    #ifElseStatement
     ;
 
 iteration_statement
-    : 'for' '(' IDENTIFIER '=' expression 'to' expression 'by' expression ')' '{' body* '}'    #forStatement
-    | 'while' '(' expression ')' '{' body* '}'                                          #whileStatement
+    : 'for' '(' IDENTIFIER '=' expression 'to' expression 'by' expression ')' '{' body? '}'    #forStatement
+    | 'while' '(' expr=expression ')' '{' body? '}'                                          #whileStatement
     ;
 
 return_statement
@@ -57,10 +52,10 @@ expression
     | '(' expression ')'                                    #parenthesisExpression
     | variable_expression                                   #variableExpression
     | function_expression                                   #functionExpression
-    | expression ('*' | '/' | '%') expression               #mathematicalExpression
-    | expression ('+' | '-') expression                     #mathematicalExpression
-    | expression ('<' | '<=' | '>' | '>=') expression       #relationalExpression
-    | expression ('==' | '!=' ) expression                  #equalityExpression
+    | expression op=('*' | '/' | '%') expression               #mathematicalExpression
+    | expression op=('+' | '-') expression                     #mathematicalExpression
+    | expression op=('<' | '<=' | '>' | '>=') expression       #relationalExpression
+    | expression op=('==' | '!=' ) expression                  #equalityExpression
     | expression '&&' expression                            #logicalExpression
     | expression '||' expression                            #logicalExpression
     ;
