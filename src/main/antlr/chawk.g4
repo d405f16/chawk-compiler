@@ -1,24 +1,23 @@
 grammar chawk;
 
 program
-    : body* setup body* route body* events body*
+    : body? setup body? route body? events body?
     ;
 
 body
-    : statement
-    | function_expression
+    : (statement | function_expression)+
     ;
 
 setup
-    : 'setup' '=' '{' body* '}'
+    : 'setup' '=' '{' body?'}'
     ;
 
 route
-    : 'route' '=' '{' body* '}'
+    : 'route' '=' '{' body? '}'
     ;
 
 events
-    : 'events' '=' '{' body* '}'
+    : 'events' '=' '{' body? '}'
     ;
 
 statement
@@ -35,17 +34,17 @@ variable_statement
     ;
 
 function_statement
-    : IDENTIFIER '=' '{' body* '}'                              #functionStatement
+    : IDENTIFIER '=' '{' body? '}'                              #functionStatement
     ;
 
 selection_statement
-    : 'if' '(' expression ')' '{' body* '}'                         #ifStatement
-    | 'if' '(' expression ')' '{' body* '}' 'else' '{' body* '}'    #ifElseStatement
+    : 'if' '(' expression ')' '{' body? '}'                         #ifStatement
+    | 'if' '(' expression ')' '{' body? '}' 'else' '{' body? '}'    #ifElseStatement
     ;
 
 iteration_statement
-    : 'for' '(' IDENTIFIER '=' expression 'to' expression 'by' expression ')' '{' body* '}'    #forStatement
-    | 'while' '(' expression ')' '{' body* '}'                                          #whileStatement
+    : 'for' '(' IDENTIFIER '=' expression 'to' expression 'by' expression ')' '{' body? '}'     #forStatement
+    | 'while' '(' expression ')' '{' body? '}'                                                  #whileStatement
     ;
 
 return_statement

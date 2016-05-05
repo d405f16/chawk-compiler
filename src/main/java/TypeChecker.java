@@ -1,6 +1,11 @@
 import SymbolTable.SymbolTable;
 import org.antlr.v4.runtime.ParserRuleContext;
 
+import java.beans.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+
 class TypeChecker extends chawkBaseVisitor {
     SymbolTable symbolTable = new SymbolTable();
 
@@ -27,6 +32,22 @@ class TypeChecker extends chawkBaseVisitor {
         return children;
     }
 
+    @Override
+    public Object visitBody(chawkParser.BodyContext ctx) {
+        for(chawkParser.Function_expressionContext fectx : ctx.function_expression()) {
+            visit(fectx);
+        }
+        List<chawkParser.StatementContext> statements = ctx.statement();
+        Object lastStatement = visit(statements.get(0));
+        for (int i = 1; i < statements.size(); i++) {
+            if (!lastStatement.equals(visit(statements.get(i)))) {
+                throw new NumberFormatException("function has return statements of different types");
+            }
+            lastStatement = visit(statements.get(i));
+        }
+        return lastStatement;
+    }
+
     //region Statements
     @Override
     public Object visitVariableStatement(chawkParser.VariableStatementContext ctx) {
@@ -38,51 +59,75 @@ class TypeChecker extends chawkBaseVisitor {
     @Override
     public Object visitArrayStatement(chawkParser.ArrayStatementContext ctx) {
         Object arrayType = visit(ctx.expression(0));
-
-        for (chawkParser.ExpressionContext expr : ctx.expression()) {
-            Object type = visit(expr);
-
+        for (chawkParser.ExpressionContext expression : ctx.expression()) {
+            Object type = visit(expression);
             if (!type.equals(arrayType)) {
                 throw new NumberFormatException("Elements in array are not all of same type");
             }
         }
-
         symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), arrayType.toString());
-
         return null;
     }
 
     @Override
     public Object visitFunctionStatement(chawkParser.FunctionStatementContext ctx) {
-        //symbolTable.pushScope();
-        //Object type = visit(ctx.body(0));
-        //System.out.println(type);
-        //symbolTable.popScope();
-
-
-
-
-        return visitChildren(ctx);
+        String type;
+        chawkParser.BodyContext bodyContext = ctx.body();
+        symbolTable.pushScope();
+        if(bodyContext == null) {
+            type = "Void";
+        } else {
+            Object body = visit(bodyContext);
+            if(body == null) {
+                type = "Void";
+            } else {
+                type = body.toString();
+            }
+        }
+        symbolTable.popScope();
+        symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), type);
+        return null;
     }
 
     @Override
     public Object visitReturn_statement(chawkParser.Return_statementContext ctx) {
-        chawkParser.FunctionStatementContext functionContext = (chawkParser.FunctionStatementContext) closestFunctionContext(ctx);
-
-        System.out.println(functionContext.IDENTIFIER().getText());
-
-        return null;
-        //return visit(ctx.expression());
+        return visit(ctx.expression());
     }
 
-    private ParserRuleContext closestFunctionContext(ParserRuleContext ctx) {
-        ParserRuleContext parent = ctx.getParent();
-
-        if (!parent.getClass().getSimpleName().equals("FunctionStatementContext")) {
-            return closestFunctionContext(parent);
+    @Override
+    public Object visitIfStatement(chawkParser.IfStatementContext ctx) {
+        chawkParser.BodyContext body = ctx.body();
+        if (body != null) {
+            return visit(body);
         }
+        return null;
+    }
 
-        return parent;
+    @Override
+    public Object visitIfElseStatement(chawkParser.IfElseStatementContext ctx) {
+        chawkParser.BodyContext body = ctx.body(0);
+        if (body != null) {
+            return visit(body);
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitForStatement(chawkParser.ForStatementContext ctx) {
+        chawkParser.BodyContext body = ctx.body();
+        if (body != null) {
+            return visit(body);
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitWhileStatement(chawkParser.WhileStatementContext ctx) {
+        chawkParser.BodyContext body = ctx.body();
+        if (body != null) {
+            return visit(body);
+        }
+        return null;
     }
     //endregion
 
