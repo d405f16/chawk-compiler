@@ -6,7 +6,7 @@ import java.lang.reflect.Type;
 
 class Visitor {
     public static void main(String[] args) {
-        String smpl = "if(1+2){2+4}else{1+2} setup = {} route = {}";
+        String smpl = "foo = {return 2+2} setup = {} route = {} events = {}";
 
         chawkLexer lexer = new chawkLexer(new ANTLRInputStream(smpl));
         chawkParser parser = new chawkParser(new CommonTokenStream(lexer));
@@ -14,6 +14,6 @@ class Visitor {
 
         ParseTree tree = parser.program();
 
-        new CodeGenerator().visit(tree);
+        new TypeChecker().visit(tree);
     }
 }

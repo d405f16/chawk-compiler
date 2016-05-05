@@ -1,38 +1,36 @@
 package SymbolTable;
 
-import java.lang.reflect.Type;
-
 public class Symbol {
-    protected Scope _scope;
-    protected String _name;
-    protected Object _type;
+    private Scope scope;
+    private String name;
+    private String type;
 
     public Symbol(String name) {
-        _name = name;
+        this.name = name;
     }
 
-    public Symbol(String name, Object type) {
-        _name = name;
-        _type = type;
+    public Symbol(String name, String type) {
+        this.name = name;
+        this.type = type;
     }
 
     public Scope getScope() {
-        return _scope;
+        return this.scope;
     }
 
     public String getName() {
-        return _name;
+        return this.name;
     }
 
-    public Object getType() {
-        return _type;
+    public String getType() {
+        return this.type;
     }
 
     public void setScope(Scope scope) {
-        _scope = scope;
+        this.scope = scope;
     }
 
-    public void setType(Object type) {
-        _type = type;
+    public void setType(String type) {
+        this.type = type;
     }
 }
