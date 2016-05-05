@@ -6,7 +6,7 @@ import java.lang.reflect.Type;
 
 class Visitor {
     public static void main(String[] args) {
-        String smpl = "asd = {a=[1,2,3] b=2} setup = {} route = {}";
+        String smpl = "if(1+2){2+4}else{1+2} setup = {} route = {}";
 
         chawkLexer lexer = new chawkLexer(new ANTLRInputStream(smpl));
         chawkParser parser = new chawkParser(new CommonTokenStream(lexer));

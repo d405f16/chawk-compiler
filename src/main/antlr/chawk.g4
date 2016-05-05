@@ -34,13 +34,13 @@ function_statement
     ;
 
 selection_statement
-    : 'if' '(' expr=expression ')' '{' statement_expression? '}'
-    | 'if' '(' expr=expression ')' '{' statement_expression? '}' 'else' '{' statement_expression? '}'
+    : 'if' '(' expr=expression ')' '{' stmtex=statement_expression? '}'                             #if
+    | 'if' '(' expr=expression ')' '{' stmtex=statement_expression? '}' 'else' '{' stmtex2=statement_expression? '}'        #ifElse
     ;
 
 iteration_statement // TODO ret number til expression
-    : 'for' '(' variable_statement 'to' num1=NUMBER 'by' num2=NUMBER ')' '{' statement_expression? '}'       #forSmt
-    | 'while' '(' expression ')' '{' statement_expression? '}'                                               #whileSmt
+    : 'for' '(' var=variable_statement 'to' num1=NUMBER 'by' num2=NUMBER ')' '{' stmtex=statement_expression? '}'       #forSmt
+    | 'while' '(' expr=expression ')' '{' stmtex=statement_expression? '}'                                               #whileSmt
     ;
 
 return_statement
