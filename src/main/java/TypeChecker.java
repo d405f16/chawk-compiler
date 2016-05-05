@@ -1,4 +1,5 @@
 import SymbolTable.SymbolTable;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 class TypeChecker extends chawkBaseVisitor {
     SymbolTable symbolTable = new SymbolTable();
@@ -26,11 +27,6 @@ class TypeChecker extends chawkBaseVisitor {
         return children;
     }
 
-    @Override
-    public Object visitBody(chawkParser.BodyContext ctx) {
-        return visit(ctx.statement());
-    }
-
     //region Statements
     @Override
     public Object visitVariableStatement(chawkParser.VariableStatementContext ctx) {
@@ -46,7 +42,7 @@ class TypeChecker extends chawkBaseVisitor {
         for (chawkParser.ExpressionContext expr : ctx.expression()) {
             Object type = visit(expr);
 
-            if(!type.equals(arrayType)) {
+            if (!type.equals(arrayType)) {
                 throw new NumberFormatException("Elements in array are not all of same type");
             }
         }
@@ -59,19 +55,35 @@ class TypeChecker extends chawkBaseVisitor {
     @Override
     public Object visitFunctionStatement(chawkParser.FunctionStatementContext ctx) {
         //symbolTable.pushScope();
-        Object type = visit(ctx.body(0));
-        System.out.println(type);
+        //Object type = visit(ctx.body(0));
+        //System.out.println(type);
         //symbolTable.popScope();
 
 
-        return null;
+
+
+        return visitChildren(ctx);
     }
 
     @Override
     public Object visitReturn_statement(chawkParser.Return_statementContext ctx) {
-        return visit(ctx.expression());
+        chawkParser.FunctionStatementContext functionContext = (chawkParser.FunctionStatementContext) closestFunctionContext(ctx);
+
+        System.out.println(functionContext.IDENTIFIER().getText());
+
+        return null;
+        //return visit(ctx.expression());
     }
 
+    private ParserRuleContext closestFunctionContext(ParserRuleContext ctx) {
+        ParserRuleContext parent = ctx.getParent();
+
+        if (!parent.getClass().getSimpleName().equals("FunctionStatementContext")) {
+            return closestFunctionContext(parent);
+        }
+
+        return parent;
+    }
     //endregion
 
     //region Expressions

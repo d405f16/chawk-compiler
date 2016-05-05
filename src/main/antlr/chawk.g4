@@ -39,13 +39,13 @@ function_statement
     ;
 
 selection_statement
-    : 'if' '(' expression ')' '{' body* '}'
-    | 'if' '(' expression ')' '{' body* '}' 'else' '{' body* '}'
+    : 'if' '(' expression ')' '{' body* '}'                         #ifStatement
+    | 'if' '(' expression ')' '{' body* '}' 'else' '{' body* '}'    #ifElseStatement
     ;
 
 iteration_statement
-    : 'for' '(' variable_statement 'to' expression 'by' expression ')' '{' body* '}'
-    | 'while' '(' expression ')' '{' body* '}'
+    : 'for' '(' IDENTIFIER '=' expression 'to' expression 'by' expression ')' '{' body* '}'    #forStatement
+    | 'while' '(' expression ')' '{' body* '}'                                          #whileStatement
     ;
 
 return_statement
