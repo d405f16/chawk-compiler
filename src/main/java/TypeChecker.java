@@ -1,5 +1,11 @@
 import SymbolTable.SymbolTable;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.ObjectEqualityComparator;
+
+import java.beans.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 class TypeChecker extends chawkBaseVisitor {
     SymbolTable symbolTable = new SymbolTable();
@@ -27,6 +33,22 @@ class TypeChecker extends chawkBaseVisitor {
         return children;
     }
 
+    @Override
+    public Object visitBody(chawkParser.BodyContext ctx) {
+        for (chawkParser.Function_expressionContext fectx : ctx.function_expression()) {
+            visit(fectx);
+        }
+        List<chawkParser.StatementContext> statements = ctx.statement();
+        Object lastStatement = visit(statements.get(0));
+        for (int i = 1; i < statements.size(); i++) {
+            if (!lastStatement.equals(visit(statements.get(i)))) {
+                throw new NumberFormatException("function has return statements of different types");
+            }
+            lastStatement = visit(statements.get(i));
+        }
+        return lastStatement;
+    }
+
     //region Statements
     @Override
     public Object visitVariableStatement(chawkParser.VariableStatementContext ctx) {
@@ -38,51 +60,94 @@ class TypeChecker extends chawkBaseVisitor {
     @Override
     public Object visitArrayStatement(chawkParser.ArrayStatementContext ctx) {
         Object arrayType = visit(ctx.expression(0));
-
-        for (chawkParser.ExpressionContext expr : ctx.expression()) {
-            Object type = visit(expr);
-
+        for (chawkParser.ExpressionContext expression : ctx.expression()) {
+            Object type = visit(expression);
             if (!type.equals(arrayType)) {
                 throw new NumberFormatException("Elements in array are not all of same type");
             }
         }
-
         symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), arrayType.toString());
-
         return null;
     }
 
     @Override
     public Object visitFunctionStatement(chawkParser.FunctionStatementContext ctx) {
-        //symbolTable.pushScope();
-        //Object type = visit(ctx.body(0));
-        //System.out.println(type);
-        //symbolTable.popScope();
-
-
-
-
-        return visitChildren(ctx);
+        String type;
+        chawkParser.BodyContext bodyContext = ctx.body();
+        symbolTable.pushScope();
+        if (bodyContext == null) {
+            type = "Void";
+        } else {
+            Object body = visit(bodyContext);
+            if (body == null) {
+                type = "Void";
+            } else {
+                type = body.toString();
+            }
+        }
+        symbolTable.popScope();
+        symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), type);
+        return null;
     }
 
     @Override
     public Object visitReturn_statement(chawkParser.Return_statementContext ctx) {
-        chawkParser.FunctionStatementContext functionContext = (chawkParser.FunctionStatementContext) closestFunctionContext(ctx);
-
-        System.out.println(functionContext.IDENTIFIER().getText());
-
-        return null;
-        //return visit(ctx.expression());
+        return visit(ctx.expression());
     }
 
-    private ParserRuleContext closestFunctionContext(ParserRuleContext ctx) {
-        ParserRuleContext parent = ctx.getParent();
-
-        if (!parent.getClass().getSimpleName().equals("FunctionStatementContext")) {
-            return closestFunctionContext(parent);
+    @Override
+    public Object visitIfStatement(chawkParser.IfStatementContext ctx) {
+        if(!visit(ctx.expression()).equals("Boolean")) {
+            throw new NumberFormatException("the condition must be a boolean expression");
         }
 
-        return parent;
+        chawkParser.BodyContext body = ctx.body();
+        if (body != null) {
+            return visit(body);
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitIfElseStatement(chawkParser.IfElseStatementContext ctx) {
+        chawkParser.BodyContext body1 = ctx.body(0);
+        chawkParser.BodyContext body2 = ctx.body(1);
+        if(!visit(ctx.expression()).equals("Boolean")) {
+            throw new NumberFormatException("the condition must be a boolean expression");
+        }
+        if (body1 != null) {
+            return visit(body1);
+        }
+        if (body2 != null) {
+            return visit(body2);
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitForStatement(chawkParser.ForStatementContext ctx) {
+        chawkParser.BodyContext body = ctx.body();
+        for(chawkParser.ExpressionContext expression : ctx.expression()) {
+            if(!visit(expression).equals("Integer")) {
+                throw new NumberFormatException("the assignment must be of type integer");
+            }
+        }
+        if (body != null) {
+            return visit(body);
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitWhileStatement(chawkParser.WhileStatementContext ctx) {
+        chawkParser.BodyContext body = ctx.body();
+        if(!visit(ctx.expression()).equals("Boolean")) {
+            throw new NumberFormatException("the condition must be a boolean expression");
+        }
+        if (body != null) {
+            return visit(body);
+        }
+        return null;
     }
     //endregion
 
@@ -115,14 +180,12 @@ class TypeChecker extends chawkBaseVisitor {
 
     @Override
     public Object visitVariable_expression(chawkParser.Variable_expressionContext ctx) {
-        //System.out.print(ctx.IDENTIFIER());
-
-        return null;
+        return symbolTable.currentScope().resolve(ctx.IDENTIFIER().getText()).getType();
     }
 
     @Override
     public Object visitFunction_expression(chawkParser.Function_expressionContext ctx) {
-        return null;
+        return symbolTable.currentScope().resolve(ctx.IDENTIFIER().getText()).getType();
     }
 
     @Override
@@ -185,106 +248,4 @@ class TypeChecker extends chawkBaseVisitor {
         return "Boolean";
     }
     //endregion
-
-    //    @Override
-//    public Object visitId(chawkParser.IdContext ctx) {
-//        return symbolTable.currentScope().resolve(ctx.id.getText()).getType();
-//    }
-//
-//    @Override
-//    public Object visitArray(chawkParser.ArrayContext ctx) {
-//        Symbol symbol = symbolTable.currentScope().resolve(ctx.id.getText());
-//        ArrayList types = (ArrayList) symbol.getType();
-//
-//        Object expr = visit(ctx.expression());
-//
-//        if (expr instanceof Integer) {
-//            return types.get((Integer) expr);
-//        }
-//
-//        throw new NumberFormatException("Array index must be an integer");
-//    }
-//
-//    //endregion
-//
-//    //region Statements
-//
-
-
-//
-//    @Override
-//    public Object visitFuncDcl(chawkParser.FuncDclContext ctx) {
-//        symbolTable.pushScope();
-//        visit(ctx.expr);
-//
-//        // TODO if type == null skal typen af Symbol s være en void agtig type
-//        Object type = visit(ctx.return_statement());
-//        Symbol s = new Symbol(ctx.id.getText(), type);
-//        symbolTable.currentScope().define(s);
-//
-//        symbolTable.popScope();
-//        return null;
-//    }
-//
-//    @Override
-//    public Object visitReturn_statement(chawkParser.Return_statementContext ctx) {
-//        return visit(ctx.expr);
-//    }
-//
-//    //endregion
-//
-//    //region Math
-//    private Integer doIntMath(Integer i1, Integer i2, char op) {
-//        switch (op) {
-//            case '*':
-//                return i1 * i2;
-//            case '/':
-//                return i1 / i2;
-//            case '%':
-//                return i1 % i2;
-//            case '+':
-//                return i1 + i2;
-//            case '-':
-//                return i1 - i2;
-//            default:
-//                return null;
-//        }
-//    }
-//
-//    private Float doFloatMath(Float f1, Float f2, char op) {
-//        switch (op) {
-//            case '*':
-//                return f1 * f2;
-//            case '/':
-//                return f1 / f2;
-//            case '%':
-//                return f1 % f2;
-//            case '+':
-//                return f1 + f2;
-//            case '-':
-//                return f1 - f2;
-//            default:
-//                return null;
-//        }
-//    }
-//
-//    private Float doFloatMath(Integer i, Float f, char op) {
-//        switch (op) {
-//            case '*':
-//                return i * f;
-//            case '/':
-//                return i / f;
-//            case '%':
-//                return i % f;
-//            case '+':
-//                return i + f;
-//            case '-':
-//                return i - f;
-//            default:
-//                return null;
-//        }
-//    }
-//    //endregion
-
-
 }

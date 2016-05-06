@@ -6,7 +6,7 @@ import java.lang.reflect.Type;
 
 class Visitor {
     public static void main(String[] args) {
-        String smpl = "foo = {speed = 10} foo(hej=10) setup = {} route = {}";
+        String smpl = "a.asd = 10 asd.ble = [123, 'asd', a.asd] asd.test = {speed = 10} foo(hej=10) setup = {} route = {}";
 
         chawkLexer lexer = new chawkLexer(new ANTLRInputStream(smpl));
         chawkParser parser = new chawkParser(new CommonTokenStream(lexer));

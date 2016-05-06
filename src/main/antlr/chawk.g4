@@ -1,7 +1,7 @@
 grammar chawk;
 
 program
-    : body? setup body? route body? EOF
+    : body? setup body? route body?
     ;
 
 body
@@ -9,7 +9,7 @@ body
     ;
 
 setup
-    : 'setup' '=' '{' body? '}'
+    : 'setup' '=' '{' body?'}'
     ;
 
 route
@@ -25,8 +25,8 @@ statement
     ;
 
 variable_statement
-    : id=IDENTIFIER '=' expression                                 #variableStatement
-    | id=IDENTIFIER '=' '[' (expression (',' expression)*)? ']'    #arrayStatement
+    : IDENTIFIER '=' expression                                 #variableStatement
+    | IDENTIFIER '=' '[' (expression (',' expression)*)? ']'    #arrayStatement
     ;
 
 function_statement
@@ -34,13 +34,13 @@ function_statement
     ;
 
 selection_statement
-    : 'if' '(' expr=expression ')' '{' body? '}'                         #ifStatement
-    | 'if' '(' expr=expression ')' '{' body? '}' 'else' '{' body? '}'    #ifElseStatement
+    : 'if' '(' expression ')' '{' body? '}'                         #ifStatement
+    | 'if' '(' expression ')' '{' body? '}' 'else' '{' body? '}'    #ifElseStatement
     ;
 
 iteration_statement
-    : 'for' '(' IDENTIFIER '=' expression 'to' expression 'by' expression ')' '{' body? '}'    #forStatement
-    | 'while' '(' expr=expression ')' '{' body? '}'                                          #whileStatement
+    : 'for' '(' IDENTIFIER '=' expression 'to' expression 'by' expression ')' '{' body? '}'     #forStatement
+    | 'while' '(' expression ')' '{' body? '}'                                                  #whileStatement
     ;
 
 return_statement
@@ -56,8 +56,8 @@ expression
     | expression op=('+' | '-') expression                     #mathematicalExpression
     | expression op=('<' | '<=' | '>' | '>=') expression       #relationalExpression
     | expression op=('==' | '!=' ) expression                  #equalityExpression
-    | expression '&&' expression                            #logicalExpression
-    | expression '||' expression                            #logicalExpression
+    | expression op='&&' expression                            #logicalExpression
+    | expression op='||' expression                            #logicalExpression
     ;
 
 variable_expression
