@@ -4,9 +4,9 @@ import java.util.List;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.jar.Attributes;
 
 class CodeGenerator extends chawkBaseVisitor {
-    //this class is super fun
 
     @Override
     public Object visitProgram(chawkParser.ProgramContext ctx) {
@@ -30,12 +30,14 @@ class CodeGenerator extends chawkBaseVisitor {
 
     @Override
     public Object visitSetup(chawkParser.SetupContext ctx) {
-        return "";
+        if(ctx.getChildCount() > 4) return "function setup(){" + visit(ctx.body()) + "}" + "setup();" ;
+        else return "";
     }
 
     @Override
     public Object visitRoute(chawkParser.RouteContext ctx) {
-        return "";
+        if(ctx.getChildCount() > 4) return "function route(){ while(true){" + visit(ctx.body()) + "}}" + "route();";
+        else return "";
     }
 
     @Override
@@ -47,7 +49,13 @@ class CodeGenerator extends chawkBaseVisitor {
 
     @Override
     public Object visitVariableStatement(chawkParser.VariableStatementContext ctx) {
-        return "var " + ctx.id.getText() + "=" + ctx.expression().getText() + ";";
+        String line = "";
+        if(ctx.getParent().getClass().getSimpleName().contains("Named_parameterContext")){
+            line = ctx.id.getText() + " : " + visit(ctx.expression());
+        }
+        else {line = "var " + ctx.id.getText() + "=" + ctx.expression().getText() + ";";}
+
+        return line;
     }
 
     @Override
@@ -60,8 +68,7 @@ class CodeGenerator extends chawkBaseVisitor {
     //region function_statement
     @Override
     public Object visitFunctionStatement(chawkParser.FunctionStatementContext ctx) {
-        return "";
-        //todo
+        return "function " + ctx.IDENTIFIER().getText() + "(params)" + "{" + visit(ctx.body()).toString() + "}";
     }
 
     //endregion
@@ -123,8 +130,23 @@ class CodeGenerator extends chawkBaseVisitor {
 
     @Override
     public Object visitFunctionExpression(chawkParser.FunctionExpressionContext ctx) {
-        //TODO
-        return "todo baby";
+        return visit(ctx.function_expression());
+    }
+
+
+    @Override
+    public Object visitFunction_expression(chawkParser.Function_expressionContext ctx) {
+        String line = ctx.IDENTIFIER().getText() + "(";
+        Integer i = 0;
+        if(ctx.getChildCount() > 3) line += "{";
+        for(chawkParser.Named_parameterContext param : ctx.named_parameter()){
+            if(i == 0) line += visit(param).toString();
+            else line += " ," + visit(param).toString();
+            i++;
+        }
+        if(ctx.getChildCount() > 3) line += "}";
+        line += ")";
+        return line;
     }
 
     @Override

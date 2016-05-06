@@ -1,1 +1,1 @@
-var e=a==b||c==d&&a==c;
+function foo(params){var speed=10;}foo({hej : 10})
