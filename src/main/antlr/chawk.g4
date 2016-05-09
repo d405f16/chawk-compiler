@@ -30,7 +30,7 @@ variable_statement
     ;
 
 function_statement
-    : IDENTIFIER '=' '{' body? '}'                              #functionStatement
+    : IDENTIFIER '=' '{' body? '}'                                  #functionStatement
     ;
 
 selection_statement
@@ -48,25 +48,25 @@ return_statement
     ;
 
 expression
-    : VALUE                                                 #valueExpression
-    | '(' expression ')'                                    #parenthesisExpression
-    | variable_expression                                   #variableExpression
-    | function_expression                                   #functionExpression
-    | expression op=('*' | '/' | '%') expression               #mathematicalExpression
-    | expression op=('+' | '-') expression                     #mathematicalExpression
-    | expression op=('<' | '<=' | '>' | '>=') expression       #relationalExpression
-    | expression op=('==' | '!=' ) expression                  #equalityExpression
-    | expression op='&&' expression                            #logicalExpression
-    | expression op='||' expression                            #logicalExpression
+    : VALUE                                                             #valueExpression
+    | '(' expression ')'                                                #parenthesisExpression
+    | variable_expression                                               #variable_expression_
+    | function_expression                                               #function_expression_
+    | expression op=('*' | '/' | '%') expression                        #mathematicalExpression
+    | expression op=('+' | '-') expression                              #mathematicalExpression
+    | expression op=('<' | '<=' | '>' | '>=') expression                #relationalExpression
+    | expression op=('==' | '!=' ) expression                           #equalityExpression
+    | expression op='&&' expression                                     #logicalExpression
+    | expression op='||' expression                                     #logicalExpression
     ;
 
 variable_expression
-    : IDENTIFIER
-    | IDENTIFIER '[' expression? ']'
+    : IDENTIFIER                                                        #variableExpression
+    | IDENTIFIER '[' expression? ']'                                    #arrayExpression
     ;
 
 function_expression
-    : IDENTIFIER '(' (named_parameter (',' named_parameter)*)? ')'
+    : IDENTIFIER '(' (named_parameter (',' named_parameter)*)? ')'      #functionExpression
     ;
 
 named_parameter

@@ -1,1 +1,0 @@
-var a_asd=10;var asd_ble=[123,'asd',a.asd];function asd_test(params){var speed=10;}foo({hej : 10})

@@ -1,11 +1,6 @@
 import SymbolTable.SymbolTable;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.ObjectEqualityComparator;
 
-import java.beans.Statement;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 class TypeChecker extends chawkBaseVisitor {
     SymbolTable symbolTable = new SymbolTable();
@@ -179,12 +174,12 @@ class TypeChecker extends chawkBaseVisitor {
     }
 
     @Override
-    public Object visitVariable_expression(chawkParser.Variable_expressionContext ctx) {
+    public Object visitVariableExpression(chawkParser.VariableExpressionContext ctx) {
         return symbolTable.currentScope().resolve(ctx.IDENTIFIER().getText()).getType();
     }
 
     @Override
-    public Object visitFunction_expression(chawkParser.Function_expressionContext ctx) {
+    public Object visitFunctionExpression(chawkParser.FunctionExpressionContext ctx) {
         return symbolTable.currentScope().resolve(ctx.IDENTIFIER().getText()).getType();
     }
 

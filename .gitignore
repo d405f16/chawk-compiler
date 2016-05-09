@@ -1,4 +1,5 @@
-/src/main/antlr/chawk.g4
+/output
+
 ## Jetbrains
 .idea/
 *.iml
