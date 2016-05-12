@@ -1,14 +1,13 @@
-import SymbolTable.SymbolTable;
+import SymbolTable.*;
 
 import java.util.List;
+
 
 class TypeChecker extends chawkBaseVisitor {
     SymbolTable symbolTable = new SymbolTable();
 
     @Override
     public Object visitProgram(chawkParser.ProgramContext ctx) {
-        System.out.println("TYPE CHECKING");
-        System.out.println("-------------");
         return visitChildren(ctx);
     }
 
@@ -48,7 +47,7 @@ class TypeChecker extends chawkBaseVisitor {
     @Override
     public Object visitVariableStatement(chawkParser.VariableStatementContext ctx) {
         Object type = visit(ctx.expression());
-        symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), type.toString());
+        symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), (String) type);
         return null;
     }
 
@@ -61,7 +60,7 @@ class TypeChecker extends chawkBaseVisitor {
                 throw new NumberFormatException("Elements in array are not all of same type");
             }
         }
-        symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), arrayType.toString());
+        symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), (String) arrayType);
         return null;
     }
 
@@ -77,7 +76,7 @@ class TypeChecker extends chawkBaseVisitor {
             if (body == null) {
                 type = "Void";
             } else {
-                type = body.toString();
+                type = (String) body;
             }
         }
         symbolTable.popScope();
@@ -92,7 +91,7 @@ class TypeChecker extends chawkBaseVisitor {
 
     @Override
     public Object visitIfStatement(chawkParser.IfStatementContext ctx) {
-        if(!visit(ctx.expression()).equals("Boolean")) {
+        if (!visit(ctx.expression()).equals("Boolean")) {
             throw new NumberFormatException("the condition must be a boolean expression");
         }
 
@@ -107,7 +106,7 @@ class TypeChecker extends chawkBaseVisitor {
     public Object visitIfElseStatement(chawkParser.IfElseStatementContext ctx) {
         chawkParser.BodyContext body1 = ctx.body(0);
         chawkParser.BodyContext body2 = ctx.body(1);
-        if(!visit(ctx.expression()).equals("Boolean")) {
+        if (!visit(ctx.expression()).equals("Boolean")) {
             throw new NumberFormatException("the condition must be a boolean expression");
         }
         if (body1 != null) {
@@ -122,8 +121,8 @@ class TypeChecker extends chawkBaseVisitor {
     @Override
     public Object visitForStatement(chawkParser.ForStatementContext ctx) {
         chawkParser.BodyContext body = ctx.body();
-        for(chawkParser.ExpressionContext expression : ctx.expression()) {
-            if(!visit(expression).equals("Integer")) {
+        for (chawkParser.ExpressionContext expression : ctx.expression()) {
+            if (!visit(expression).equals("Integer")) {
                 throw new NumberFormatException("the assignment must be of type integer");
             }
         }
@@ -136,7 +135,7 @@ class TypeChecker extends chawkBaseVisitor {
     @Override
     public Object visitWhileStatement(chawkParser.WhileStatementContext ctx) {
         chawkParser.BodyContext body = ctx.body();
-        if(!visit(ctx.expression()).equals("Boolean")) {
+        if (!visit(ctx.expression()).equals("Boolean")) {
             throw new NumberFormatException("the condition must be a boolean expression");
         }
         if (body != null) {
@@ -175,12 +174,20 @@ class TypeChecker extends chawkBaseVisitor {
 
     @Override
     public Object visitVariableExpression(chawkParser.VariableExpressionContext ctx) {
-        return symbolTable.currentScope().resolve(ctx.IDENTIFIER().getText()).getType();
+        Symbol symbol = symbolTable.currentScope().resolve(ctx.IDENTIFIER().getText());
+        if(symbol == null) {
+            throw new NumberFormatException("variable '" + ctx.IDENTIFIER().getText() + "' is undefined");
+        }
+        return symbol.getType();
     }
 
     @Override
     public Object visitFunctionExpression(chawkParser.FunctionExpressionContext ctx) {
-        return symbolTable.currentScope().resolve(ctx.IDENTIFIER().getText()).getType();
+        Symbol symbol = symbolTable.currentScope().resolve(ctx.IDENTIFIER().getText());
+        if(symbol == null) {
+            throw new NumberFormatException("function '" + ctx.IDENTIFIER().getText() + "' is undefined");
+        }
+        return symbol.getType();
     }
 
     @Override

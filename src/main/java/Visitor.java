@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 class Visitor {
     public static void main(String[] args) {
-        String smpl = "setup = {asd = [1,2,3,4,5,6] foo = {} if(2==2){} else {}} asd = 1 route = {foo(test = 2)} asd = 1 ";
+        String smpl = "setup = {a = b} route = {}";
 
         chawkLexer lexer = new chawkLexer(new ANTLRInputStream(smpl));
         chawkParser parser = new chawkParser(new CommonTokenStream(lexer));
@@ -12,6 +12,6 @@ class Visitor {
 
         ParseTree tree = parser.program();
 
-        new CodeGenerator().visit(tree);
+        new TypeChecker().visit(tree);
     }
 }
