@@ -1,3 +1,0 @@
-class SemanticsVisitor extends chawkBaseVisitor {
-    //
-}
