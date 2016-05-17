@@ -1,11 +1,10 @@
-import java.util.ArrayList;
 
 public class cHawk {
-    public cHawk() {
-        Float a = 20.12f;
-        Float b = 265.654f;
-        if(a == b) {
-
+    public static void main(String[] args) {
+        int a=2+2*4;
+        while(2==2){
+            System.out.println("fuck mark");
+            a+=10;
         }
     }
 }
