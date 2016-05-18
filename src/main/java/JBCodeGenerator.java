@@ -15,7 +15,7 @@ public class JBCodeGenerator extends chawkBaseVisitor {
     @Override
     public Object visit(ParseTree tree) {
         if (tree == null) {
-            return null;
+            return "";
         }
         return super.visit(tree);
     }
@@ -28,7 +28,7 @@ public class JBCodeGenerator extends chawkBaseVisitor {
             if (child != null)
                 System.out.println(child);
         }
-        System.out.println("}");
+        System.out.println("return\r\n}");
         return null;
     }
 
@@ -50,30 +50,16 @@ public class JBCodeGenerator extends chawkBaseVisitor {
     @Override
     public Object visitWhileStatement(chawkParser.WhileStatementContext ctx) {
         String line = "";
+        Integer gotolabel = label + 1;
+
         line += visit(ctx.expression());
-        String type = ctx.expression().getChild(0).getClass().getSimpleName().equals("Variable_expression_Context")
-                ? variableMap.get(ctx.expression().getChild(0).getText()).getType() : visit(ctx.expression().getChild(2)).getClass().getSimpleName();
-        System.out.println(ctx.expression().getChild(1).getText());
-        if (type.equals("Float")) {
-            line += "f";
-            line += boolOperator(ctx.expression().getChild(1).getText());
-            line += " Label" + labelinc() + "\r\n";
-        }
-        else {
-            line += "l";
-            line += boolOperator(ctx.expression().getChild(1).getText());
-            line += " Label" + labelinc() + "\r\n";
-        }
-        visitBody(ctx.body());
+        line += visit(ctx.body());
+        line += "goto Label" + gotolabel + "\r\n";
+        line += "Label" + label + ":\r\n";
+
         return line;
     }
 
-    private String boolOperator(String Op){
-        switch(Op){
-            case "<": return "cmpg";
-            default : return null;
-        }
-    }
     @Override
     public Object visitRelationalExpression(chawkParser.RelationalExpressionContext ctx) {
         String line = "";
@@ -81,6 +67,8 @@ public class JBCodeGenerator extends chawkBaseVisitor {
         StoreValue variable2 = variableMap.get(ctx.expression(1).getText());
         String type1 = (variable1 != null) ? variable1.getType() : visit(ctx.expression(0)).getClass().getSimpleName();
         String type2 = (variable2 != null) ? variable2.getType() : visit(ctx.expression(1)).getClass().getSimpleName();
+
+        line += "Label" + labelinc() + ":" + "\r\n";
 
         if((type1.contains("Integer") && type2.contains("Integer")) || (type1.contains("Float") && type2.contains("Float"))) {
             if (ctx.expression(0).getClass().getSimpleName().contains("Variable_expression_Context")) {
@@ -99,9 +87,34 @@ public class JBCodeGenerator extends chawkBaseVisitor {
                 String type = visit(ctx.expression(1)).getClass().getSimpleName();
                 line += constantSwitch(type, ctx.expression(1).getText());
             }
-            return line;
         }
         else throw new ArithmeticException("Both numbers must be of same type");
+        if(type1.equals("Integer")){
+            switch (ctx.getChild(1).getText()){
+                case "<": line += "if_icmpge Label" + labelinc() + "\r\n";
+                    break;
+                case ">": line += "if_icmple Label" + labelinc() + "\r\n";
+                    break;
+                case "<=": line += "if_icmpgt Label" + labelinc() + "\r\n";
+                    break;
+                case ">=": line += "if_icmplt Label" + labelinc() + "\r\n";
+                default: throw new ArithmeticException("< <= >= >  comparisons are only allowed");
+            }
+        }
+        else{
+            switch (ctx.getChild(1).getText()){
+                case "<": line += "fcmpg\r\nifge Label" + labelinc() + "\r\n";
+                    break;
+                case ">": line += "fcmpl\r\nifle Label" + labelinc() + "\r\n";
+                    break;
+                case "<=": line += "fcmpg\r\nifgt Label" + labelinc() + "\r\n";
+                    break;
+                case ">=": line += "fcmpl\r\niflt Label" + labelinc() + "\r\n";
+                default: throw new ArithmeticException("< <= >= >  comparisons are only allowed");
+            }
+        }
+
+        return line;
     }
     private String constantSwitch(String type, String value){
         switch(type){
