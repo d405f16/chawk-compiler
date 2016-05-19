@@ -1,9 +1,5 @@
 import SymbolTable.StoreValue;
-import SymbolTable.Symbol;
 import org.antlr.v4.runtime.tree.ParseTree;
-
-import java.io.InvalidClassException;
-import java.util.InvalidPropertiesFormatException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -11,6 +7,7 @@ public class JBCodeGenerator extends chawkBaseVisitor {
     private Map<String, StoreValue> variableMap = new LinkedHashMap<String, StoreValue>();
     private int label=-1;
     private int store=0;
+    private String functions = "";
 
     @Override
     public Object visit(ParseTree tree) {
@@ -22,13 +19,25 @@ public class JBCodeGenerator extends chawkBaseVisitor {
 
     @Override
     public Object visitProgram(chawkParser.ProgramContext ctx) {
-        System.out.println("public class cHawk {");
+        String line = "";
+        line += ".class public cHawk\r\n";
+        line += ".super java/lang/Object\r\n";
+        line += ".method public <init>()V\r\n";
+        line += "aload_0\r\n" +
+                "invokenonvirtual ";
+        line += "java/lang/Object/<init>()V\r\n";
+        line += "return\r\n";
+        line += ".end method\r\n";
+        line += ".method public static main([Ljava/lang/String;)V\r\n" +
+                ".limit stack 400\r\n" +
+                ".limit locals 200\r\n";
         for (int i = 0; i < ctx.getChildCount(); i++) {
             Object child = visit(ctx.getChild(i));
             if (child != null)
-                System.out.println(child);
+                line+=child;
         }
-        System.out.println("return\r\n}");
+        line+="return\r\n.end method";
+        System.out.println(line);
         return null;
     }
 
@@ -48,6 +57,16 @@ public class JBCodeGenerator extends chawkBaseVisitor {
     }
 
     @Override
+    public Object visitIfStatement(chawkParser.IfStatementContext ctx) {
+        String line = "";
+        line += visit(ctx.expression());
+
+        line += visit(ctx.body());
+        line += "Label" + label + ":\r\n";
+        return line;
+    }
+
+    @Override
     public Object visitWhileStatement(chawkParser.WhileStatementContext ctx) {
         String line = "";
         Integer gotolabel = label + 1;
@@ -56,6 +75,22 @@ public class JBCodeGenerator extends chawkBaseVisitor {
         line += visit(ctx.body());
         line += "goto Label" + gotolabel + "\r\n";
         line += "Label" + label + ":\r\n";
+
+        return line;
+    }
+
+    @Override
+    public Object visitFunctionExpression(chawkParser.FunctionExpressionContext ctx) {
+        String line = "";
+
+        if(ctx.getChild(0).getText().equals("print")){
+            line += "getstatic java/lang/System/out Ljava/io/PrintStream;\r\n";
+            line += "ldc \"";
+            for(int i = 2; i < ctx.getChild(2).getChild(0).getChildCount(); i++){
+                line += ctx.getChild(2).getChild(0).getChild(i).getText();
+            }
+            line += "\"\ninvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\r\n";
+        }
 
         return line;
     }
