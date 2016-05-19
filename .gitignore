@@ -1,0 +1,12 @@
+/build
+
+## Java
+*.jar
+*.war
+*.ear
+
+## Jetbrains
+/.idea
+
+##Gradle
+/.gradle
