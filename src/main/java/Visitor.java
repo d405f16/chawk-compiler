@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 class Visitor {
     public static void main(String[] args) {
-        String smpl = "a=2.0 d=1.0 if(d<10.0){print(hej=world)}  setup = {} route = {}";
+        String smpl = "a=2.0 d=1.0 while(a>d){b=3} setup = {} route = {if(1<2){print(hej=123)}}";
 
         chawkLexer lexer = new chawkLexer(new ANTLRInputStream(smpl));
         chawkParser parser = new chawkParser(new CommonTokenStream(lexer));

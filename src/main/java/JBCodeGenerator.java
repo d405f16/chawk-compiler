@@ -19,6 +19,7 @@ public class JBCodeGenerator extends chawkBaseVisitor {
 
     @Override
     public Object visitProgram(chawkParser.ProgramContext ctx) {
+        visitChildren(ctx);
         String line = "";
         line += ".class public cHawk\r\n";
         line += ".super java/lang/Object\r\n";
@@ -28,6 +29,7 @@ public class JBCodeGenerator extends chawkBaseVisitor {
         line += "java/lang/Object/<init>()V\r\n";
         line += "return\r\n";
         line += ".end method\r\n";
+        line += functions;
         line += ".method public static main([Ljava/lang/String;)V\r\n" +
                 ".limit stack 400\r\n" +
                 ".limit locals 200\r\n";
@@ -39,6 +41,32 @@ public class JBCodeGenerator extends chawkBaseVisitor {
         line+="return\r\n.end method";
         System.out.println(line);
         return null;
+    }
+
+    @Override
+    public Object visitSetup(chawkParser.SetupContext ctx) {
+        String line = "";
+        line += "invokestatic cHawk.setup()V\r\n";
+        functions += ".method public static setup()V\r\n";
+        functions += ".limit stack 20\r\n.limit locals 20\r\n";
+        functions += visit(ctx.body());
+        functions += "return" +
+                "\r\n.end method\r\n";
+
+        return line;
+    }
+
+    @Override
+    public Object visitRoute(chawkParser.RouteContext ctx) {
+        String line = "";
+        line += "invokestatic cHawk.route()V\r\n";
+        functions += ".method public static route()V\r\n";
+        functions += ".limit stack 20\r\n.limit locals 20\r\n";
+        functions += visit(ctx.body());
+        functions += "return" +
+                "\r\n.end method\r\n";
+
+        return line;
     }
 
     @Override
@@ -91,7 +119,6 @@ public class JBCodeGenerator extends chawkBaseVisitor {
             }
             line += "\"\ninvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\r\n";
         }
-
         return line;
     }
 
