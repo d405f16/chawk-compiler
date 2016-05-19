@@ -1,5 +1,9 @@
 import SymbolTable.StoreValue;
 import org.antlr.v4.runtime.tree.ParseTree;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -39,7 +43,17 @@ public class JBCodeGenerator extends chawkBaseVisitor {
                 line+=child;
         }
         line+="return\r\n.end method";
-        System.out.println(line);
+        try {
+            File file = new File("output\\cHawk.j");
+            file.getParentFile().mkdir();
+            file.createNewFile();
+            FileWriter fw = new FileWriter(file);
+            fw.write(line);
+            fw.flush();
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
@@ -59,10 +73,13 @@ public class JBCodeGenerator extends chawkBaseVisitor {
     @Override
     public Object visitRoute(chawkParser.RouteContext ctx) {
         String line = "";
+        int gotolabel = label + 1;
         line += "invokestatic cHawk.route()V\r\n";
         functions += ".method public static route()V\r\n";
         functions += ".limit stack 20\r\n.limit locals 20\r\n";
+        functions += "Label" + labelinc() + ":\r\n";
         functions += visit(ctx.body());
+        functions += "goto " + "Label" +gotolabel + "\r\n";
         functions += "return" +
                 "\r\n.end method\r\n";
 
