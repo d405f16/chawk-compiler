@@ -49,7 +49,7 @@ class TypeChecker extends chawkBaseVisitor {
     public Object visitVariableStatement(chawkParser.VariableStatementContext ctx) {
         Object type = visit(ctx.expression());
         symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), (String) type);
-        return null;
+        return type;
     }
 
     @Override
@@ -62,7 +62,7 @@ class TypeChecker extends chawkBaseVisitor {
             }
         }
         symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), (String) arrayType);
-        return null;
+        return arrayType;
     }
 
     @Override
@@ -82,7 +82,7 @@ class TypeChecker extends chawkBaseVisitor {
         }
         symbolTable.popScope();
         symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), type);
-        return null;
+        return type;
     }
 
     @Override
