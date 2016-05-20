@@ -4,8 +4,6 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import java.util.ArrayList;
 
 class CodeGenerator extends cHawkBaseVisitor {
-    private ArrayList<cHawkParser.FunctionExpressionContext> functions = new ArrayList<>();
-
     @Override
     public Object visit(ParseTree tree) {
         if (tree == null) {
@@ -31,30 +29,35 @@ class CodeGenerator extends cHawkBaseVisitor {
 
     @Override
     public Object visitBody(cHawkParser.BodyContext ctx) {
-        return super.visitBody(ctx);
-    }
-
-    private String generateRouteFunctions(ArrayList<cHawkParser.FunctionExpressionContext> functions) {
-        if (functions.size() == 1) {
-            return functions.get(0).IDENTIFIER() + "({}, function() {route();})"; // last function
-        } else if (functions.size() > 1) {
-            cHawkParser.FunctionExpressionContext function = functions.get(0);
-            functions.remove(0);
-            return function.IDENTIFIER() + "({}, function() {" + generateRouteFunctions(functions) + "})";
+        String result = "";
+        String scope = "";
+        int scopeCount = 0;
+        for (int i = 0; i < ctx.getChildCount(); i++) {
+            ParseTree child = ctx.getChild(i);
+            if (child.getClass().getSimpleName().equals("SystemFunctionExpressionContext")
+                    || child.getClass().getSimpleName().equals("FunctionExpressionContext")) {
+                scope += visit(child);
+                result += scope;
+                scope = "";
+                scopeCount++;
+            } else {
+                scope += visit(child);
+            }
         }
-        return "";
+        for (int i = 0; i < scopeCount; i++) {
+            scope += "});";
+        }
+        return result + scope;
     }
 
     @Override
     public String visitSetup(cHawkParser.SetupContext ctx) {
-        functions = new ArrayList<>();
-        return "function setup() {" + visit(ctx.body()) + generateRouteFunctions(functions) + "}";
+        return "function setup() {" + visit(ctx.body()) + "}";
     }
 
     @Override
     public String visitRoute(cHawkParser.RouteContext ctx) {
-        functions = new ArrayList<>();
-        return "function route() {" + visit(ctx.body()) + generateRouteFunctions(functions) + "}";
+        return "function route() {" + visit(ctx.body()) + "}";
     }
     //endregion
 
@@ -73,12 +76,16 @@ class CodeGenerator extends cHawkBaseVisitor {
         for (cHawkParser.ExpressionContext expr : ctx.expression()) {
             array.add((String) visit(expr));
         }
+        if (ctx.getParent().getClass().getSimpleName().equals("NamedVariableParameterContext")) {
+            return ctx.IDENTIFIER() + ":[" + String.join(",", array) + "]";
+        }
         return "var " + ctx.IDENTIFIER() + " = [" + String.join(",", array) + "];";
     }
 
     @Override
     public Object visitFunctionStatement(cHawkParser.FunctionStatementContext ctx) {
-        return "function " + ctx.IDENTIFIER() + "(params){" + visit(ctx.body()) + visit(ctx.return_statement()) + "}";
+        return "function " + ctx.IDENTIFIER() + "(params, callback){" + visit(ctx.body()) +
+                "callback();" + visit(ctx.return_statement()) + "}";
     }
 
     @Override
@@ -141,20 +148,19 @@ class CodeGenerator extends cHawkBaseVisitor {
         return "params." + visit(ctx.variable_expression());
     }
 
+
     @Override
-    public String visitFunctionExpression(cHawkParser.FunctionExpressionContext ctx) {
-//        ArrayList<String> parameters = new ArrayList<>();
-//        for (cHawkParser.Named_parameterContext param : ctx.named_parameter()) {
-//            parameters.add((String) visit(param));
-//        }
-//        return ctx.IDENTIFIER() + "({" + String.join(",", parameters) + "}, function() {});";
-        functions.add(ctx);
-        return "";
+    public Object visitFunctionExpression(cHawkParser.FunctionExpressionContext ctx) {
+        ArrayList<String> parameters = new ArrayList<>();
+        for (cHawkParser.Named_parameterContext param : ctx.named_parameter()) {
+            parameters.add(visit(param).toString());
+        }
+        return ctx.IDENTIFIER() + "({" + String.join(",", parameters) + "}, function() {";
     }
 
     @Override
     public Object visitSystemFunctionExpression(cHawkParser.SystemFunctionExpressionContext ctx) {
-        return visit(ctx.function_expression()); // TODO tilføj system funktioner til funktions arrayet
+        return "drone." + visit(ctx.function_expression());
     }
 
     @Override

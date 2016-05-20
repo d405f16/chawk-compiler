@@ -1,9 +1,12 @@
 setup = {
-
+    foo = {
+        a = params.a
+    }
+    foo(a = 12)
 }
 
 route = {
-    fly(speed = 100, time = 10)
-    fly(speed = 100, time = 20)
-    fly(speed = 100, time = 30)
+    drone.fly(speed = 15, time = 3)
+    drone.fly(speed = 80, time = 6)
+    drone.fly(speed = 20, time = 1)
 }
