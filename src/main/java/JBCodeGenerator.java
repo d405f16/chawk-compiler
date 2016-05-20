@@ -127,12 +127,14 @@ public class JBCodeGenerator extends chawkBaseVisitor {
     @Override
     public Object visitFunctionExpression(chawkParser.FunctionExpressionContext ctx) {
         String line = "";
+        String temp = "";
 
         if(ctx.getChild(0).getText().equals("print")){
             line += "getstatic java/lang/System/out Ljava/io/PrintStream;\r\n";
             line += "ldc \"";
             for(int i = 2; i < ctx.getChild(2).getChild(0).getChildCount(); i++){
-                line += ctx.getChild(2).getChild(0).getChild(i).getText();
+                temp =ctx.getChild(2).getChild(0).getChild(i).getText();
+                line += temp.replace("\"", "");
             }
             line += "\"\ninvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\r\n";
         }
