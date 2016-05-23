@@ -24,7 +24,7 @@ class CodeGenerator extends cHawkBaseVisitor {
     //region Base
     @Override
     public Object visitProgram(cHawkParser.ProgramContext ctx) {
-        return super.visitProgram(ctx);
+        return "module.exports = function () {" + super.visitProgram(ctx) + "}";
     }
 
     @Override
@@ -52,12 +52,12 @@ class CodeGenerator extends cHawkBaseVisitor {
 
     @Override
     public String visitSetup(cHawkParser.SetupContext ctx) {
-        return "function setup() {" + visit(ctx.body()) + "}";
+        return "this.setup = function() {" + visit(ctx.body()) + "}";
     }
 
     @Override
     public String visitRoute(cHawkParser.RouteContext ctx) {
-        return "function route() {" + visit(ctx.body()) + "}";
+        return "this.route = function() {" + visit(ctx.body()) + "}";
     }
     //endregion
 
