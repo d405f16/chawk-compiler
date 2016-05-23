@@ -1,3 +1,5 @@
+import com.sun.javaws.exceptions.InvalidArgumentException;
+import com.sun.xml.internal.fastinfoset.util.StringArray;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -11,28 +13,42 @@ public class cHawk {
     public static void main(String[] args) throws IOException {
         Path input = null;
         Path output = null;
-
+        String code = "";
         switch (args.length) {
             case 1:
                 input = Paths.get(args[0]);
-                output = Paths.get(removeExtension(input.getFileName().toString()) + ".js");
+                output = Paths.get(removeExtension(input.toString()) + ".js");
                 break;
             case 2:
                 input = Paths.get(args[0]);
                 output = Paths.get(args[1]);
                 break;
+            default:
+                throw new IllegalArgumentException("Invalid arguments");
         }
 
         ParseTree tree = parseFile(input);
 
         System.out.println("Checking types...");
         new TypeChecker().visit(tree);
+        if(getExtension(output.toString()).equals("class")){
+            System.out.println("Generating bytecode...");
+            code = (String) new JBCodeGenerator().visit(tree);
+        }
+        else {
+            System.out.println("Generating code...");
+            code = (String) new CodeGenerator().visit(tree);
+        }
+            System.out.println("Writing file...");
+            renderFile(output, code);
+    }
+    private static String getExtension(String filename){
 
-        System.out.println("Generating code...");
-        String code = (String) new CodeGenerator().visit(tree);
-
-        System.out.println("Writing file...");
-        renderFile(output, code);
+        int i = filename.lastIndexOf('.');
+        if (i > 0) {
+            return filename.substring(i+1);
+        }
+        else throw new IllegalArgumentException("The filepath needs an extension");
     }
 
     private static String removeExtension(String filename) {

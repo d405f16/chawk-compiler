@@ -1,4 +1,3 @@
-/* TODO fix errors caused from cfg changes
 import SymbolTable.StoreValue;
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -25,37 +24,26 @@ public class JBCodeGenerator extends cHawkBaseVisitor {
     @Override
     public Object visitProgram(cHawkParser.ProgramContext ctx) {
         visitChildren(ctx);
-//        String line = "";
-//        line += ".class public cHawk\r\n";
-//        line += ".super java/lang/Object\r\n";
-//        line += ".method public <init>()V\r\n";
-//        line += "aload_0\r\n" +
-//                "invokenonvirtual ";
-//        line += "java/lang/Object/<init>()V\r\n";
-//        line += "return\r\n";
-//        line += ".end method\r\n";
-//        line += functions;
-//        line += ".method public static main([Ljava/lang/String;)V\r\n" +
-//                ".limit stack 400\r\n" +
-//                ".limit locals 200\r\n";
-//        for (int i = 0; i < ctx.getChildCount(); i++) {
-//            Object child = visit(ctx.getChild(i));
-//            if (child != null)
-//                line += child;
-//        }
-//        line += "return\r\n.end method";
-//        try {
-//            File file = new File("output\\cHawk.j");
-//            file.getParentFile().mkdir();
-//            file.createNewFile();
-//            FileWriter fw = new FileWriter(file);
-//            fw.write(line);
-//            fw.flush();
-//            fw.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        return null;
+        String line = "";
+        line += ".class public cHawk\r\n";
+        line += ".super java/lang/Object\r\n";
+        line += ".method public <init>()V\r\n";
+        line += "aload_0\r\n" +
+                "invokenonvirtual ";
+        line += "java/lang/Object/<init>()V\r\n";
+        line += "return\r\n";
+        line += ".end method\r\n";
+        line += functions;
+        line += ".method public static main([Ljava/lang/String;)V\r\n" +
+                ".limit stack 400\r\n" +
+                ".limit locals 200\r\n";
+        for (int i = 0; i < ctx.getChildCount(); i++) {
+            Object child = visit(ctx.getChild(i));
+            if (child != null)
+                line += child;
+        }
+        line += "return\r\n.end method";
+        return line;
     }
 
     @Override
@@ -145,30 +133,30 @@ public class JBCodeGenerator extends cHawkBaseVisitor {
     @Override
     public Object visitRelationalExpression(cHawkParser.RelationalExpressionContext ctx) {
         String line = "";
-        StoreValue variable1 = variableMap.get(ctx.expression(0).getText());
-        StoreValue variable2 = variableMap.get(ctx.expression(1).getText());
-        String type1 = (variable1 != null) ? variable1.getType() : visit(ctx.expression(0)).getClass().getSimpleName();
-        String type2 = (variable2 != null) ? variable2.getType() : visit(ctx.expression(1)).getClass().getSimpleName();
+        StoreValue variable1 = variableMap.get(ctx.logical_expression().getText());
+        StoreValue variable2 = variableMap.get(ctx.expression().getText());
+        String type1 = (variable1 != null) ? variable1.getType() : visit(ctx.logical_expression()).getClass().getSimpleName();
+        String type2 = (variable2 != null) ? variable2.getType() : visit(ctx.expression()).getClass().getSimpleName();
 
         line += "Label" + labelinc() + ":" + "\r\n";
 
         if ((type1.contains("Integer") && type2.contains("Integer")) || (type1.contains("Float") && type2.contains
                 ("Float"))) {
-            if (ctx.expression(0).getClass().getSimpleName().contains("Variable_expression_Context")) {
-                StoreValue variable = variableMap.get(ctx.expression(0).getText());
+            if (ctx.logical_expression().getClass().getSimpleName().contains("Variable_expression_Context")) {
+                StoreValue variable = variableMap.get(ctx.logical_expression().getText());
                 line += variableSwitch(variable);
             }
-            if (ctx.expression(0).getClass().getSimpleName().contains("ValueExpressionContext")) {
-                String type = visit(ctx.expression(0)).getClass().getSimpleName();
-                line += constantSwitch(type, ctx.expression(0).getText());
+            if (ctx.logical_expression().getClass().getSimpleName().contains("ValueExpressionContext")) {
+                String type = visit(ctx.logical_expression()).getClass().getSimpleName();
+                line += constantSwitch(type, ctx.logical_expression().getText());
             }
-            if (ctx.expression(1).getClass().getSimpleName().contains("Variable_expression_Context")) {
-                StoreValue variable = variableMap.get(ctx.expression(1).getText());
+            if (ctx.expression().getClass().getSimpleName().contains("Variable_expression_Context")) {
+                StoreValue variable = variableMap.get(ctx.expression().getText());
                 line += variableSwitch(variable);
             }
-            if (ctx.expression(1).getClass().getSimpleName().contains("ValueExpressionContext")) {
-                String type = visit(ctx.expression(1)).getClass().getSimpleName();
-                line += constantSwitch(type, ctx.expression(1).getText());
+            if (ctx.expression().getClass().getSimpleName().contains("ValueExpressionContext")) {
+                String type = visit(ctx.expression()).getClass().getSimpleName();
+                line += constantSwitch(type, ctx.expression().getText());
             }
         } else throw new ArithmeticException("Both numbers must be of same type");
         if (type1.equals("Integer")) {
@@ -283,4 +271,4 @@ public class JBCodeGenerator extends cHawkBaseVisitor {
         store++;
         return store;
     }
-}*/
+}
