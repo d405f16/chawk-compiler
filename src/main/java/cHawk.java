@@ -29,6 +29,7 @@ public class cHawk {
 
         System.out.println("Checking types...");
         new TypeChecker().visit(tree);
+        System.out.println(getExtension(output.toString()));
         if(getExtension(output.toString()).equals("class")){
             System.out.println("Generating bytecode...");
             code = (String) new JBCodeGenerator().visit(tree);
