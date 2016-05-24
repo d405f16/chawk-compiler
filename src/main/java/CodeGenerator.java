@@ -24,7 +24,7 @@ class CodeGenerator extends cHawkBaseVisitor {
     //region Base
     @Override
     public Object visitProgram(cHawkParser.ProgramContext ctx) {
-        return "module.exports = function (drone) {" + super.visitProgram(ctx) + "};";
+        return "module.exports = function (drone) {" + visitChildren(ctx) + "};";
     }
 
     @Override

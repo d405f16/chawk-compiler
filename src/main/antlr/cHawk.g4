@@ -1,7 +1,7 @@
 grammar cHawk;
 
 program
-    : body? setup body? route body?
+    : statement* setup statement* route statement*
     ;
 
 body

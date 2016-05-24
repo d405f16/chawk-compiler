@@ -1,14 +1,11 @@
 import SymbolTable.StoreValue;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class JBCodeGenerator extends cHawkBaseVisitor {
-    private Map<String, StoreValue> variableMap = new LinkedHashMap<String, StoreValue>();
+    private Map<String, StoreValue> variableMap = new LinkedHashMap<>();
     private int label = -1;
     private int store = 0;
     private String functions = "";
