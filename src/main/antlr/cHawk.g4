@@ -68,13 +68,13 @@ variable_expression
     : IDENTIFIER                                                    #variableExpression
     | IDENTIFIER '[' expression? ']'                                #arrayExpression
     | 'drone.' variable_expression                                  #systemVariableExpression
-    | 'params.' variable_expression                                 #variableParameterExpression
+    | 'param.' variable_expression                                 #variableParameterExpression
     ;
 
 function_expression
     : IDENTIFIER '(' (named_parameter (',' named_parameter)*)? ')'  #functionExpression
     | 'drone.' function_expression                                  #systemFunctionExpression
-    | 'params.' function_expression                                 #functionParameterExpression
+    | 'param.' function_expression                                 #functionParameterExpression
     ;
 
 parenthesis_expression

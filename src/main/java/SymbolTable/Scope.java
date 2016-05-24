@@ -9,7 +9,6 @@ public class Scope {
     private final int level;
     private Scope enclosingScope;
     private Map<String, Symbol> symbolMap = new LinkedHashMap<String, Symbol>();
-    private List<String> keywords = Arrays.asList("drone.fly", "drone.takeoff", "drone.land", "param");
 
     Scope(int level, Scope enclosingScope) {
         this.level = level;
@@ -18,9 +17,6 @@ public class Scope {
 
     public void define(String name, String type) {
         Symbol symbol = new Symbol(name, type);
-        if (this.keywords.contains(symbol.getName())) {
-            throw new NullPointerException("symbol name is reserved");
-        }
         symbol.setScope(this);
         symbolMap.put(symbol.getName(), symbol);
     }

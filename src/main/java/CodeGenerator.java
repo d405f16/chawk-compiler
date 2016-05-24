@@ -84,7 +84,7 @@ class CodeGenerator extends cHawkBaseVisitor {
 
     @Override
     public Object visitFunctionStatement(cHawkParser.FunctionStatementContext ctx) {
-        return "function " + ctx.IDENTIFIER() + "(params, callback){" + visit(ctx.body()) +
+        return "function " + ctx.IDENTIFIER() + "(param, callback){" + visit(ctx.body()) +
                 "callback();" + visit(ctx.return_statement()) + "}";
     }
 
@@ -145,7 +145,7 @@ class CodeGenerator extends cHawkBaseVisitor {
 
     @Override
     public String visitVariableParameterExpression(cHawkParser.VariableParameterExpressionContext ctx) {
-        return "params." + visit(ctx.variable_expression());
+        return "param." + visit(ctx.variable_expression());
     }
 
 
@@ -165,7 +165,7 @@ class CodeGenerator extends cHawkBaseVisitor {
 
     @Override
     public Object visitFunctionParameterExpression(cHawkParser.FunctionParameterExpressionContext ctx) {
-        return "params." + visit(ctx.function_expression());
+        return "param." + visit(ctx.function_expression());
     }
 
     @Override
