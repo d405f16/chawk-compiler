@@ -44,6 +44,11 @@ class CodeGenerator extends cHawkBaseVisitor {
                 scope += visit(child);
             }
         }
+
+        if (scopeCount > 0) {
+            scope += "callback();";
+        }
+
         for (int i = 0; i < scopeCount; i++) {
             scope += "});";
         }
@@ -84,8 +89,7 @@ class CodeGenerator extends cHawkBaseVisitor {
 
     @Override
     public Object visitFunctionStatement(cHawkParser.FunctionStatementContext ctx) {
-        return "function " + ctx.IDENTIFIER() + "(param, callback){" + visit(ctx.body()) +
-                "callback();" + visit(ctx.return_statement()) + "}";
+        return "function " + ctx.IDENTIFIER() + "(param, callback){" + visit(ctx.body()) + visit(ctx.return_statement()) + "}";
     }
 
     @Override
