@@ -45,8 +45,14 @@ class CodeGenerator extends cHawkBaseVisitor {
             }
         }
 
+        String parentContext = ctx.getParent().getClass().getSimpleName();
+
         if (scopeCount > 0) {
-            scope += "callback();";
+            if (parentContext.equals("RouteContext")) {
+                scope += "route();";
+            }
+            if (parentContext.equals("FunctionStatementContext"))
+                scope += "callback();";
         }
 
         for (int i = 0; i < scopeCount; i++) {
@@ -57,12 +63,12 @@ class CodeGenerator extends cHawkBaseVisitor {
 
     @Override
     public String visitSetup(cHawkParser.SetupContext ctx) {
-        return "this.setup = function() {" + visit(ctx.body()) + "};";
+        return "setup = function() {" + visit(ctx.body()) + "};";
     }
 
     @Override
     public String visitRoute(cHawkParser.RouteContext ctx) {
-        return "this.route = function() {" + visit(ctx.body()) + "};";
+        return "function route() {" + visit(ctx.body()) + "};";
     }
     //endregion
 
