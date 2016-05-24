@@ -6,18 +6,18 @@ import java.util.List;
 import java.util.Map;
 
 public class Scope {
-    public final int level;
-    public Scope enclosingScope;
-    protected Map<String, Symbol> symbolMap = new LinkedHashMap<String, Symbol>();
+    private final int level;
+    private Scope enclosingScope;
+    private Map<String, Symbol> symbolMap = new LinkedHashMap<String, Symbol>();
     private List<String> keywords = Arrays.asList("drone.fly", "drone.takeoff", "drone.land", "param");
 
-    public Scope(int level, Scope enclosingScope) {
+    Scope(int level, Scope enclosingScope) {
         this.level = level;
         this.enclosingScope = enclosingScope;
     }
 
-    public void define(String name, String type, Integer size) {
-        Symbol symbol = new Symbol(name, type, size);
+    public void define(String name, String type) {
+        Symbol symbol = new Symbol(name, type);
         if (this.keywords.contains(symbol.getName())) {
             throw new NullPointerException("symbol name is reserved");
         }
@@ -30,9 +30,5 @@ public class Scope {
         if (symbol != null) return symbol;
         if (this.enclosingScope != null) return this.enclosingScope.resolve(name);
         return null;
-    }
-
-    public Scope enclosingScope() {
-        return this.enclosingScope;
     }
 }

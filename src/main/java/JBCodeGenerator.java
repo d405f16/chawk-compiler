@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class JBCodeGenerator extends cHawkBaseVisitor {
+class JBCodeGenerator extends cHawkBaseVisitor {
     private Map<String, StoreValue> variableMap = new LinkedHashMap<>();
     private int label = -1;
     private int store = 0;
@@ -235,7 +235,7 @@ public class JBCodeGenerator extends cHawkBaseVisitor {
                 line += "ldc " + visit(ctx.getChild(2)) + "\r\n" +
                         "astore " + storeinc() + "\r\n";
         }
-        StoreValue variable = new StoreValue(name, type, store);
+        StoreValue variable = new StoreValue(type, store);
         variableMap.put(name, variable);
         return line;
     }

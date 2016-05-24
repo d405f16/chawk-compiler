@@ -36,11 +36,4 @@ public class SymbolTable {
         System.err.println("Unbalanced scope stack.");
         return allScopes.get(0);
     }
-
-    public Scope getScope(int level) {
-        for (Scope scope : scopeStack) {
-            if (scope.level == level) return scope;
-        }
-        return null;
-    }
 }

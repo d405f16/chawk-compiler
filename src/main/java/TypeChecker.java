@@ -38,7 +38,7 @@ class TypeChecker extends cHawkBaseVisitor {
     @Override
     public Object visitVariableStatement(cHawkParser.VariableStatementContext ctx) {
         Object type = visit(ctx.expression());
-        symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), (String) type, null);
+        symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), (String) type);
         return null;
     }
 
@@ -53,7 +53,7 @@ class TypeChecker extends cHawkBaseVisitor {
                         "of same type");
             }
         }
-        symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), (String) arrayType, ctx.expression().size());
+        symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), (String) arrayType);
         return null;
     }
 
@@ -61,9 +61,9 @@ class TypeChecker extends cHawkBaseVisitor {
     public Object visitFunctionStatement(cHawkParser.FunctionStatementContext ctx) {
         Object type = visit(ctx.body());
         if (type == null) {
-            symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), "Void", null);
+            symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), "Void");
         } else {
-            symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), (String) type, null);
+            symbolTable.currentScope().define(ctx.IDENTIFIER().getText(), (String) type);
         }
         return null;
     }
