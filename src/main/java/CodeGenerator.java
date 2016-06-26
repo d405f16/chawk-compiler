@@ -63,12 +63,12 @@ class CodeGenerator extends cHawkBaseVisitor {
 
     @Override
     public String visitSetup(cHawkParser.SetupContext ctx) {
-        return "function setup() {" + visit(ctx.body()) + "}";
+        return "function setup() {" + visit(ctx.body()) + "}; this.setup = setup;";
     }
 
     @Override
     public String visitRoute(cHawkParser.RouteContext ctx) {
-        return "function route() {" + visit(ctx.body()) + "}";
+        return "function route() {" + visit(ctx.body()) + "}; this.route = route;";
     }
     //endregion
 
